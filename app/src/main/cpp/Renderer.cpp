@@ -41,39 +41,6 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    GLfloat vertices[] = {
-                -0.4f, -0.4f,  0.4f,    //        7--------6
-                 0.4f, -0.4f,  0.4f,    //       /|       /|
-                 0.4f, -0.4f, -0.4f,    //      4--------5 |
-                 -0.4f, -0.4f, -0.4f,   //      | |      | |
-                 -0.4f,  0.4f,  0.4f,   //      | 3------|-2
-                 0.4f,  0.4f,  0.4f,    //      |/       |/
-                 0.4f,  0.4f, -0.4f,    //      0--------1
-                 -0.4f,  0.4f, -0.4f
-    };
-
-    unsigned int skyboxIndices[] =
-            {
-                    // Right
-                    1, 2, 6,
-                    6, 5, 1,
-                    // Left
-                    0, 4, 7,
-                    7, 3, 0,
-                    // Top
-                    4, 5, 6,
-                    6, 7, 4,
-                    // Bottom
-                    0, 3, 2,
-                    2, 1, 0,
-                    // Back
-                    0, 1, 5,
-                    5, 4, 0,
-                    // Front
-                    3, 7, 6,
-                    6, 2, 3
-            };
-
     ptrShader = new Shader("default.vert", "default.frag", g_assetManager);
 
     ptrVAO_ = new VAO();
@@ -83,16 +50,20 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     ptrVBO_->bind();
     ptrVBO_->addVertices(sizeof(float) * 3 * 8, vertices);
 
+    ptrEBO_ = new EBO(skyboxIndices);
+
     ptrVAO_->LinkAttrib(0, 3, GL_FLOAT, sizeof(GLfloat) * 3, nullptr);
 
     ptrVAO_->unbind();
     ptrVBO_->unbind();
+    ptrEBO_->unbind();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
     ptrShader->Delete();
     ptrVAO_->Delete();
     ptrVBO_->Delete();
+    ptrEBO_->Delete();
 
     eglDestroyContext(display, context);
     eglDestroySurface(display, surface);
@@ -109,7 +80,7 @@ void Renderer::do_frame() {
 
     ptrShader->Activate();
     ptrVAO_->bind();
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawElements(GL_LINES, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
     ptrVAO_->unbind();
 
     auto res = eglSwapBuffers(display, surface);

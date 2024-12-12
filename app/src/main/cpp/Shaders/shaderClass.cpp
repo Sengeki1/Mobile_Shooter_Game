@@ -1,5 +1,6 @@
 #include "shaderClass.h"
 
+// given the file reader and Compatibility issues with C++ and java we have to use g_assetManager to load files
 std::string get_file_contents(const char* filename, AAssetManager* g_assetManager) {
     AAsset* asset = AAssetManager_open(g_assetManager, filename, AASSET_MODE_BUFFER);
     if (asset == nullptr) {

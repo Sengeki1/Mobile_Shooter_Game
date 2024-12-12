@@ -9,7 +9,12 @@ project("shootergame")
 set(BUFFERS_SOURCES
         Buffers/VAO.cpp
         Buffers/VBO.cpp
+        Buffers/EBO.cpp
 )
+
+#Include Mesh files
+#set(MESHES_SOURCES
+#        Mesh/)
 
 ## Include Shaders files
 set(SHADERS_SOURCES

@@ -6,7 +6,10 @@
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include "Buffers/VAO.h"
 #include "Buffers/VBO.h"
+#include "Buffers/EBO.h"
 #include "Shaders/shaderClass.h"
+
+#include "Mesh/Cube.h"
 
 class Renderer {
     public:
@@ -22,6 +25,7 @@ class Renderer {
 
         VAO* ptrVAO_;
         VBO* ptrVBO_;
+        EBO* ptrEBO_;
         Shader* ptrShader;
 };
 

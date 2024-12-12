@@ -5,7 +5,7 @@
 #include "Renderer.h"
 #include "AssetManager.h"
 
-AAssetManager *g_assetManager = nullptr;
+AAssetManager *g_assetManager = nullptr; // asset manager for loading files set a value to it for init
 
 extern "C" {
     #include <game-activity/native_app_glue/android_native_app_glue.c>
@@ -18,7 +18,7 @@ void on_app_cmd(android_app *app, int32_t cmd) { // required callback function t
     switch(cmd) {
         case APP_CMD_INIT_WINDOW: // starting app
             __android_log_print(ANDROID_LOG_INFO, "LOG", "Starting Window.."); // print message when starting app
-            g_assetManager = app->activity->assetManager;
+            g_assetManager = app->activity->assetManager;  // when app loading set the assetManager
             app->userData = new Renderer(app, g_assetManager);
             break;
         case APP_CMD_TERM_WINDOW: {
