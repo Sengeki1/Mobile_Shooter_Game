@@ -13,8 +13,6 @@ set(BUFFERS_SOURCES
 
 ## Include Shaders files
 set(SHADERS_SOURCES
-        Shaders/default.frag
-        Shaders/default.vert
         Shaders/shaderClass.cpp)
 
 # Creates your game shared library. The name must be the same as the

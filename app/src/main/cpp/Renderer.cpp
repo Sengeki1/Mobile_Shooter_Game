@@ -39,36 +39,60 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     res = eglMakeCurrent(display, surface, surface, context);
     assert(res);
 
-    glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    float vertices[] = {
-             0.0f, 0.5f,
-            -0.5f, -0.5f,
-             0.5f, -0.5f
+    GLfloat vertices[] = {
+                -0.4f, -0.4f,  0.4f,    //        7--------6
+                 0.4f, -0.4f,  0.4f,    //       /|       /|
+                 0.4f, -0.4f, -0.4f,    //      4--------5 |
+                 -0.4f, -0.4f, -0.4f,   //      | |      | |
+                 -0.4f,  0.4f,  0.4f,   //      | 3------|-2
+                 0.4f,  0.4f,  0.4f,    //      |/       |/
+                 0.4f,  0.4f, -0.4f,    //      0--------1
+                 -0.4f,  0.4f, -0.4f
     };
 
-    Shader shaderProgram("default.vert", "default.frag", g_assetManager);
-    ptrShader = &shaderProgram;
+    unsigned int skyboxIndices[] =
+            {
+                    // Right
+                    1, 2, 6,
+                    6, 5, 1,
+                    // Left
+                    0, 4, 7,
+                    7, 3, 0,
+                    // Top
+                    4, 5, 6,
+                    6, 7, 4,
+                    // Bottom
+                    0, 3, 2,
+                    2, 1, 0,
+                    // Back
+                    0, 1, 5,
+                    5, 4, 0,
+                    // Front
+                    3, 7, 6,
+                    6, 2, 3
+            };
 
-    VAO VAO_;
-    VAO_.bind();
-    ptrVAO_ = &VAO_;
+    ptrShader = new Shader("default.vert", "default.frag", g_assetManager);
 
-    VBO VBO_;
-    VBO_.bind();
-    ptrVBO_ = &VBO_;
-    VBO_.addVertices(sizeof(vertices), vertices);
+    ptrVAO_ = new VAO();
+    ptrVAO_->bind();
 
-    VAO_.LinkAttrib(0, 2, GL_FLOAT, sizeof(float) * 2, (void*)0);
+    ptrVBO_ = new VBO();
+    ptrVBO_->bind();
+    ptrVBO_->addVertices(sizeof(float) * 3 * 8, vertices);
 
-    VAO_.unbind();
-    VBO_.unbind();
+    ptrVAO_->LinkAttrib(0, 3, GL_FLOAT, sizeof(GLfloat) * 3, nullptr);
+
+    ptrVAO_->unbind();
+    ptrVBO_->unbind();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
-    (*ptrVAO_).Delete();
-    (*ptrVBO_).Delete();
-    (*ptrShader).Delete();
+    ptrShader->Delete();
+    ptrVAO_->Delete();
+    ptrVBO_->Delete();
 
     eglDestroyContext(display, context);
     eglDestroySurface(display, surface);
@@ -81,14 +105,12 @@ void Renderer::do_frame() {
     eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 
     glViewport(0, 0, width, height);
-
     glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(1.0f, 0.5f, 1.0f, 1.0f);
 
-    (*ptrShader).Activate();
-    (*ptrVAO_).bind();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    (*ptrVAO_).unbind();
+    ptrShader->Activate();
+    ptrVAO_->bind();
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    ptrVAO_->unbind();
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);

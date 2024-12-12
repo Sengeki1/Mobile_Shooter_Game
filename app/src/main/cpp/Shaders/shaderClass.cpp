@@ -22,11 +22,11 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile, AAssetManager* 
     const char* fragmentSource = fragmentCode.c_str();
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER); // GLuint is an unsigned integer (aka a positive integer) in a openGL way - reference value
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
+    glShaderSource(vertexShader, 1, &vertexSource, nullptr);
     glCompileShader(vertexShader); // compile it into machine code
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+    glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
     glCompileShader(fragmentShader);
 
     GLint compileStatus;
@@ -65,6 +65,7 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile, AAssetManager* 
     glAttachShader(ID, vertexShader);
     glAttachShader(ID, fragmentShader);
     glLinkProgram(ID);
+    __android_log_print(ANDROID_LOG_INFO, "LOG", "Shader Programs Linked \n");
 
     glDeleteShader(vertexShader); // we delete both because the program is already using them so there is no need
     glDeleteShader(fragmentShader);
