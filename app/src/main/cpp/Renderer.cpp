@@ -50,15 +50,22 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
 
     ptrVBO_ = new VBO();
     ptrVBO_->bind();
-    ptrVBO_->addVertices(sizeof(float) * 3 * 8, vertices);
+    ptrVBO_->addVertices(sizeof(vertices), vertices);
 
     ptrEBO_ = new EBO(skyboxIndices);
 
-    ptrVAO_->LinkAttrib(0, 3, GL_FLOAT, sizeof(GLfloat) * 3, nullptr);
+    ptrVAO_->LinkAttrib(0, 3, GL_FLOAT, 5 * sizeof(GLfloat), (void*)0);
+    ptrVAO_->LinkAttrib(1, 2, GL_FLOAT, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
     ptrVAO_->unbind();
     ptrVBO_->unbind();
     ptrEBO_->unbind();
+
+    // Cube Texture
+    //Texture texture("pop_cat.png");
+    //texture.Bind();
+    //texture.setTexture(0);
+    //texture.Unbind();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
@@ -66,6 +73,7 @@ Renderer::~Renderer() { // Dis-construct for when the Function is terminating
     ptrVAO_->Delete();
     ptrVBO_->Delete();
     ptrEBO_->Delete();
+    //ptrTexture->Delete();
 
     eglDestroyContext(display, context);
     eglDestroySurface(display, surface);
@@ -85,6 +93,8 @@ void Renderer::do_frame() {
     angle += 1.0f;
 
     ptrShader->Activate();
+    //glActiveTexture(GL_TEXTURE0);
+    //ptrTexture->Bind();
     Renderer::setProjection(ptrShader, width, height);
     ptrVAO_->bind();
 
@@ -94,10 +104,11 @@ void Renderer::do_frame() {
 
     // transformations
     glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0f));
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.0f, 1.0f));
     glUniformMatrix4fv(glGetUniformLocation(ptrShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glDrawElements(GL_LINE_LOOP, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
     ptrVAO_->unbind();
 
     auto res = eglSwapBuffers(display, surface);
@@ -105,7 +116,8 @@ void Renderer::do_frame() {
 }
 
 void Renderer::setProjection(Shader* shader, int width, int height) {
-    float inv_aspect = (float)height / (float)width;
-    glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -inv_aspect, inv_aspect);
+    float inv_aspect = (float)width / (float)height;
+    //glm::mat4 projection = glm::ortho(-2.5f, 2.5f, -inv_aspect, inv_aspect);
+    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }

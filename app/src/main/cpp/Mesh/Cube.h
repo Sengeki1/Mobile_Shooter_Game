@@ -7,15 +7,17 @@
 #include <vector>
 
 static GLfloat vertices[] = {
-        -0.5f, -0.5f,  0.5f,    //        7--------6
-        0.5f, -0.5f,  0.5f,    //       /|       /|
-        0.5f, -0.5f, -0.5f,    //      4--------5 |
-        -0.5f, -0.5f, -0.5f,   //      | |      | |
-        -0.5f,  0.5f,  0.5f,   //      | 3------|-2
-        0.5f,  0.5f,  0.5f,    //      |/       |/
-        0.5f,  0.5f, -0.5f,    //      0--------1
-        -0.5f,  0.5f, -0.5f
+        // Positions          // UV Coordinates
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,  // Vertex 0
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,  // Vertex 1
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,  // Vertex 2
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,  // Vertex 3
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,  // Vertex 4
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,  // Vertex 5
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,  // Vertex 6
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f   // Vertex 7
 };
+
 
 static std::vector<int> skyboxIndices = {
         // Right

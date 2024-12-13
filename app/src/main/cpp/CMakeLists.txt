@@ -12,6 +12,10 @@ set(BUFFERS_SOURCES
         Buffers/EBO.cpp
 )
 
+# Include Texture files
+set(TEXTURES_SOURCES
+        Textures/Texture.cpp)
+
 ## Include Shaders files
 set(SHADERS_SOURCES
         Shaders/shaderClass.cpp)
@@ -22,6 +26,8 @@ add_library(shootergame SHARED
         main.cpp
         ${BUFFERS_SOURCES}
         ${SHADERS_SOURCES}
+        ${TEXTURES_SOURCES}
+        stb.cpp
         Renderer.cpp
 )
 
@@ -38,7 +44,6 @@ target_link_libraries(shootergame
 
         # libraries
         glm
-
         # EGL and other dependent libraries required for drawing
         # and interacting with Android system
         EGL

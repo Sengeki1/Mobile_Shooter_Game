@@ -15,6 +15,7 @@
 #include "Buffers/EBO.h"
 #include "Shaders/shaderClass.h"
 #include "Mesh/Cube.h"
+#include "Textures/Texture.h"
 
 class Renderer {
     public:
@@ -33,6 +34,7 @@ class Renderer {
         VBO* ptrVBO_;
         EBO* ptrEBO_;
         Shader* ptrShader;
+        Texture* ptrTexture;
 };
 
 
