@@ -12,10 +12,6 @@ set(BUFFERS_SOURCES
         Buffers/EBO.cpp
 )
 
-#Include Mesh files
-#set(MESHES_SOURCES
-#        Mesh/)
-
 ## Include Shaders files
 set(SHADERS_SOURCES
         Shaders/shaderClass.cpp)
@@ -32,10 +28,16 @@ add_library(shootergame SHARED
 # Searches for a package provided by the game activity dependency
 find_package(game-activity REQUIRED CONFIG)
 
+#Add libraries
+add_subdirectory(Libraries/glm)
+
 # Configure libraries CMake uses to link your target library.
 target_link_libraries(shootergame
         # The game activity
         game-activity::game-activity
+
+        # libraries
+        glm
 
         # EGL and other dependent libraries required for drawing
         # and interacting with Android system

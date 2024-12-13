@@ -41,6 +41,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    // Cube
     ptrShader = new Shader("default.vert", "default.frag", g_assetManager);
 
     ptrVAO_ = new VAO();
@@ -78,11 +79,32 @@ void Renderer::do_frame() {
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // deltaTime
+    static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
+    angle += 1.0f;
+
     ptrShader->Activate();
+    Renderer::setProjection(ptrShader, width, height);
     ptrVAO_->bind();
-    glDrawElements(GL_LINES, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+
+    // Shader data
+    glUniform2f(glGetUniformLocation(ptrShader->ID, "uv_resolution"), (float)width, (float)height);
+    glUniform1f(glGetUniformLocation(ptrShader->ID, "u_time"), angle);
+
+    // transformations
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.0f, 1.0f));
+    glUniformMatrix4fv(glGetUniformLocation(ptrShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+    glDrawElements(GL_TRIANGLES, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
     ptrVAO_->unbind();
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);
+}
+
+void Renderer::setProjection(Shader* shader, int width, int height) {
+    float inv_aspect = (float)height / (float)width;
+    glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -inv_aspect, inv_aspect);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
