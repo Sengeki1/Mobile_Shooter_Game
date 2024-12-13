@@ -40,6 +40,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     assert(res);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
 
     // Cube
     ptrShader = new Shader("default.vert", "default.frag", g_assetManager);
@@ -77,7 +78,7 @@ void Renderer::do_frame() {
     eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 
     glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // deltaTime
     static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
@@ -96,7 +97,7 @@ void Renderer::do_frame() {
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.0f, 1.0f));
     glUniformMatrix4fv(glGetUniformLocation(ptrShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glDrawElements(GL_TRIANGLES, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINE_LOOP, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
     ptrVAO_->unbind();
 
     auto res = eglSwapBuffers(display, surface);
