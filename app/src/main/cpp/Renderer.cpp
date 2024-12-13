@@ -94,6 +94,7 @@ void Renderer::do_frame() {
 
     // transformations
     glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0f));
     model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.0f, 1.0f));
     glUniformMatrix4fv(glGetUniformLocation(ptrShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
@@ -105,7 +106,8 @@ void Renderer::do_frame() {
 }
 
 void Renderer::setProjection(Shader* shader, int width, int height) {
-    float inv_aspect = (float)height / (float)width;
-    glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -inv_aspect, inv_aspect);
+    float inv_aspect = (float)width / (float)height;
+    //glm::mat4 projection = glm::ortho(-2.5f, 2.5f, -inv_aspect, inv_aspect);
+    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
