@@ -1,34 +1,41 @@
 #include "Texture.h"
 
-Texture::Texture(const char* filename) {
-    __android_log_print(ANDROID_LOG_INFO, "LOG", "Loading Image..");
-    bytes = stbi_load(filename,  &textureWidth, &textureHeight, &nrChannels, 0);
-    __android_log_print(ANDROID_LOG_INFO, "LOG", "Image Loaded");
+Texture::Texture(const char* filename, AAssetManager* g_assetManager) {
+
+    auto asset = AAssetManager_open(g_assetManager, filename, AASSET_MODE_BUFFER);
+    auto length = AAsset_getLength(asset);
+    auto buffer = AAsset_getBuffer(asset);
+
+    if (!buffer) {
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Failed loading Image Directory");
+        AAsset_close(asset);
+        return;
+    }
+
+    bytes = stbi_load_from_memory((const uint8_t *) buffer, length, &textureWidth, &textureHeight, nullptr, 4);
+    AAsset_close(asset);
 
     if (!bytes) {
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "Failed loading Image");
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Failed loading bytes");
+        return;
     }
 
     glGenTextures(1, &texture); // Generate a Texture buffer
-}
+    glBindTexture(GL_TEXTURE_2D, texture);
 
-void Texture::Bind() {
-    glBindTexture(GL_TEXTURE_2D, texture); // make the newly created texture current
-}
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-void Texture::setTexture(int i) {
-    glActiveTexture(GL_TEXTURE0 + i); // Activate a new texture unit
-    glBindTexture(GL_TEXTURE_2D, texture); // make the newly created texture current
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, textureWidth, textureHeight); // set the image texture in newly created texture unit
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureWidth, textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, bytes);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureWidth, textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, bytes); // set the image texture in newly created texture unit
-    glGenerateMipmap(GL_TEXTURE_2D); // idk but we gotta generate a mipmap to the image to appear
-}
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-void Texture::Unbind() {
     stbi_image_free(bytes);
-    glBindTexture(GL_TEXTURE_2D, 0); // Unbinding it
 }
 
-void Texture::Delete() {
+Texture::~Texture() {
     glDeleteTextures(1, &texture);
 }

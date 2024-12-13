@@ -11,14 +11,12 @@
 
 class Texture {
     public:
-        Texture(const char* filename);
-        void Bind();
-        void setTexture(int i);
-        void Unbind();
-        void Delete();
-    private:
+        Texture(const char* filename, AAssetManager* g_assetManager);
+        ~Texture();
+
         GLuint texture;
-        int textureWidth, textureHeight, nrChannels;
+private:
+    int textureWidth, textureHeight;
         unsigned char* bytes;
 };
 

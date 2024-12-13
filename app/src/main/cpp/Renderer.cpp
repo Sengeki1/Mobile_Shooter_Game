@@ -62,10 +62,11 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     ptrEBO_->unbind();
 
     // Cube Texture
-    //Texture texture("pop_cat.png");
-    //texture.Bind();
-    //texture.setTexture(0);
-    //texture.Unbind();
+    int width, height;
+    eglQuerySurface(display, surface, EGL_WIDTH, &width); // get width and height of the phone screen
+    eglQuerySurface(display, surface, EGL_HEIGHT, &height);
+    ptrTexture = new Texture("pop_cat.png", g_assetManager);
+    glUniform1f(glGetUniformLocation(ptrShader->ID, "tex0"), 0);
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
@@ -73,7 +74,6 @@ Renderer::~Renderer() { // Dis-construct for when the Function is terminating
     ptrVAO_->Delete();
     ptrVBO_->Delete();
     ptrEBO_->Delete();
-    //ptrTexture->Delete();
 
     eglDestroyContext(display, context);
     eglDestroySurface(display, surface);
@@ -93,8 +93,8 @@ void Renderer::do_frame() {
     angle += 1.0f;
 
     ptrShader->Activate();
-    //glActiveTexture(GL_TEXTURE0);
-    //ptrTexture->Bind();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ptrTexture->texture);
     Renderer::setProjection(ptrShader, width, height);
     ptrVAO_->bind();
 
@@ -117,7 +117,6 @@ void Renderer::do_frame() {
 
 void Renderer::setProjection(Shader* shader, int width, int height) {
     float inv_aspect = (float)width / (float)height;
-    //glm::mat4 projection = glm::ortho(-2.5f, 2.5f, -inv_aspect, inv_aspect);
     glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
