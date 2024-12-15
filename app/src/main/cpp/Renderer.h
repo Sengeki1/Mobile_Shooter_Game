@@ -4,6 +4,9 @@
 #include <GLES/egl.h> // egl servers to display what we are going to render just like glfw
 #include <GLES3/gl3.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "Libraries/glm/glm.hpp"
 #include "Libraries/glm/gtc/matrix_transform.hpp"

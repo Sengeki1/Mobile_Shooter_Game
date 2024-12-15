@@ -6,6 +6,12 @@ android {
     namespace = "com.example.shootergame"
     compileSdk = 34
 
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs()
+        }
+    }
+
     defaultConfig {
         applicationId = "com.example.shootergame"
         minSdk = 30

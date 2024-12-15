@@ -3,6 +3,28 @@
 #include <assert.h>
 
 Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Construct
+
+
+    const char* modelPath = "models/your_model.obj";  // Path inside 'assets/'
+
+    AAsset* asset = AAssetManager_open(g_assetManager, modelPath, AASSET_MODE_BUFFER);
+    if (asset) {
+        size_t assetSize = AAsset_getLength(asset);
+        void* assetData = malloc(assetSize);
+        AAsset_read(asset, assetData, assetSize);
+        AAsset_close(asset);
+
+        // Now pass the assetData to Assimp
+        Assimp::Importer importer;
+        const aiScene* scene = importer.ReadFileFromMemory(assetData, assetSize, aiProcess_Triangulate | aiProcess_FlipWindingOrder);
+
+        if (scene) {
+            // Handle loaded scene (process meshes, materials, etc.)
+        }
+
+        free(assetData);
+    }
+
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY); // set the Display as default
     assert(display); // In case of errors;
 

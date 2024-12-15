@@ -31,6 +31,20 @@ add_library(shootergame SHARED
         Renderer.cpp
 )
 
+add_definitions(-DAI_CONFIG_ANDROID_JNI_ASSIMP_MANAGER_SUPPORT)
+#libassimp
+set(ASSIMP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/assimp/include")
+set(ASSIMP_LIB_PATH "${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libassimp.so")
+
+include_directories(${ASSIMP_INCLUDE_DIR})
+
+add_library(assimp SHARED IMPORTED)
+set_target_properties(assimp
+        PROPERTIES
+        IMPORTED_LOCATION ${ASSIMP_LIB_PATH}
+        INTERFACE_INCLUDE_DIRECTORIES ${ASSIMP_INCLUDE_DIR}
+)
+
 # Searches for a package provided by the game activity dependency
 find_package(game-activity REQUIRED CONFIG)
 
@@ -50,4 +64,7 @@ target_link_libraries(shootergame
         GLESv3
         jnigraphics
         android
-        log)
+        log
+
+        # Assimp library
+        assimp)
