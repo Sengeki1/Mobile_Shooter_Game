@@ -4,7 +4,7 @@
 
 Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Construct
     // Including OBJ files
-    const char* modelPath = "Models/City Block/model.obj";  // Path inside 'assets/'
+    const char* modelPath = "Models/Hand/hand.obj";  // Path inside 'assets/'
     ptrLoader = new Loader(modelPath, g_assetManager);
 
     // SCREEN CONFIGURATIONS
@@ -58,7 +58,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
 
     ptrEBO_2 = new EBO(ptrLoader->indices);
 
-    ptrVAO_2->LinkAttrib(0, 3, GL_FLOAT, sizeof(glm::vec3), (void*)0); // a void pointer can hold an address of any type
+    ptrVAO_2->LinkAttrib(0, 3, GL_FLOAT, sizeof(GLfloat) * 3, (void*)0); // a void pointer can hold an address of any type
 
     ptrVAO_2->unbind();
     ptrVBO_2->unbind();
@@ -94,7 +94,7 @@ void Renderer::do_frame() {
 
     // transformations
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, -0.5f, -3.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
     model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
     glUniformMatrix4fv(glGetUniformLocation(ptrShader_2->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
