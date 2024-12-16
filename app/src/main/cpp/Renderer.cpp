@@ -3,28 +3,11 @@
 #include <assert.h>
 
 Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Construct
+    // Including OBJ files
+    const char* modelPath = "Models/City Block/model.obj";  // Path inside 'assets/'
+    ptrLoader = new Loader(modelPath, g_assetManager);
 
-
-    const char* modelPath = "models/your_model.obj";  // Path inside 'assets/'
-
-    AAsset* asset = AAssetManager_open(g_assetManager, modelPath, AASSET_MODE_BUFFER);
-    if (asset) {
-        size_t assetSize = AAsset_getLength(asset);
-        void* assetData = malloc(assetSize);
-        AAsset_read(asset, assetData, assetSize);
-        AAsset_close(asset);
-
-        // Now pass the assetData to Assimp
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFileFromMemory(assetData, assetSize, aiProcess_Triangulate | aiProcess_FlipWindingOrder);
-
-        if (scene) {
-            // Handle loaded scene (process meshes, materials, etc.)
-        }
-
-        free(assetData);
-    }
-
+    // SCREEN CONFIGURATIONS
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY); // set the Display as default
     assert(display); // In case of errors;
 
@@ -64,38 +47,29 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
-    // Cube
-    ptrShader = new Shader("default.vert", "default.frag", g_assetManager);
+    ptrShader_2 = new Shader("model.vert", "model.frag", g_assetManager);
 
-    ptrVAO_ = new VAO();
-    ptrVAO_->bind();
+    ptrVAO_2 = new VAO();
+    ptrVAO_2->bind();
 
-    ptrVBO_ = new VBO();
-    ptrVBO_->bind();
-    ptrVBO_->addVertices(sizeof(vertices), vertices);
+    ptrVBO_2 = new VBO();
+    ptrVBO_2->bind();
+    ptrVBO_2->addVertices(ptrLoader->vertices);
 
-    ptrEBO_ = new EBO(skyboxIndices);
+    ptrEBO_2 = new EBO(ptrLoader->indices);
 
-    ptrVAO_->LinkAttrib(0, 3, GL_FLOAT, 5 * sizeof(GLfloat), (void*)0);
-    ptrVAO_->LinkAttrib(1, 2, GL_FLOAT, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+    ptrVAO_2->LinkAttrib(0, 3, GL_FLOAT, sizeof(glm::vec3), (void*)0); // a void pointer can hold an address of any type
 
-    ptrVAO_->unbind();
-    ptrVBO_->unbind();
-    ptrEBO_->unbind();
-
-    // Cube Texture
-    int width, height;
-    eglQuerySurface(display, surface, EGL_WIDTH, &width); // get width and height of the phone screen
-    eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-    ptrTexture = new Texture("pop_cat.png", g_assetManager);
-    glUniform1f(glGetUniformLocation(ptrShader->ID, "tex0"), 0);
+    ptrVAO_2->unbind();
+    ptrVBO_2->unbind();
+    ptrEBO_2->unbind();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
-    ptrShader->Delete();
-    ptrVAO_->Delete();
-    ptrVBO_->Delete();
-    ptrEBO_->Delete();
+    ptrShader_2->Delete();
+    ptrVAO_2->Delete();
+    ptrVBO_2->Delete();
+    ptrEBO_2->Delete();
 
     eglDestroyContext(display, context);
     eglDestroySurface(display, surface);
@@ -114,24 +88,17 @@ void Renderer::do_frame() {
     static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
     angle += 1.0f;
 
-    ptrShader->Activate();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ptrTexture->texture);
-    Renderer::setProjection(ptrShader, width, height);
-    ptrVAO_->bind();
-
-    // Shader data
-    glUniform2f(glGetUniformLocation(ptrShader->ID, "uv_resolution"), (float)width, (float)height);
-    glUniform1f(glGetUniformLocation(ptrShader->ID, "u_time"), angle);
+    ptrShader_2->Activate();
+    Renderer::setProjection(ptrShader_2, width, height);
+    ptrVAO_2->bind();
 
     // transformations
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0f));
-    model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 1.0f, 1.0f));
-    glUniformMatrix4fv(glGetUniformLocation(ptrShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    model = glm::translate(model, glm::vec3(0.0f, -0.5f, -3.0f));
+    model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniformMatrix4fv(glGetUniformLocation(ptrShader_2->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-    glDrawElements(GL_TRIANGLES, skyboxIndices.size() * sizeof(int), GL_UNSIGNED_INT, 0);
-    ptrVAO_->unbind();
+    glDrawElements(GL_LINE_LOOP, ptrLoader->indices.size(), GL_UNSIGNED_INT, 0);
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);

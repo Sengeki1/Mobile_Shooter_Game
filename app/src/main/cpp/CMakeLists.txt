@@ -16,9 +16,11 @@ set(BUFFERS_SOURCES
 set(TEXTURES_SOURCES
         Textures/Texture.cpp)
 
-## Include Shaders files
+# Include Shaders files
 set(SHADERS_SOURCES
         Shaders/shaderClass.cpp)
+
+set(LOADER_SOURCE Loader/Loader.cpp)
 
 # Creates your game shared library. The name must be the same as the
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
@@ -27,6 +29,7 @@ add_library(shootergame SHARED
         ${BUFFERS_SOURCES}
         ${SHADERS_SOURCES}
         ${TEXTURES_SOURCES}
+        ${LOADER_SOURCE}
         stb.cpp
         Renderer.cpp
 )

@@ -4,9 +4,6 @@
 #include <GLES/egl.h> // egl servers to display what we are going to render just like glfw
 #include <GLES3/gl3.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 #include "Libraries/glm/glm.hpp"
 #include "Libraries/glm/gtc/matrix_transform.hpp"
@@ -19,6 +16,7 @@
 #include "Shaders/shaderClass.h"
 #include "Mesh/Cube.h"
 #include "Textures/Texture.h"
+#include "Loader/Loader.h"
 
 class Renderer {
     public:
@@ -33,11 +31,12 @@ class Renderer {
         EGLSurface surface;
         EGLContext context; // to run OpenGL calls
 
-        VAO* ptrVAO_;
-        VBO* ptrVBO_;
-        EBO* ptrEBO_;
-        Shader* ptrShader;
+        VAO* ptrVAO_2;
+        VBO* ptrVBO_2;
+        EBO* ptrEBO_2;
+        Shader* ptrShader_2;
         Texture* ptrTexture;
+        Loader* ptrLoader;
 };
 
 

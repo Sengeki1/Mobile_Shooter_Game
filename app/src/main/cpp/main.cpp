@@ -32,6 +32,7 @@ void on_app_cmd(android_app *app, int32_t cmd) { // required callback function t
             if (renderer) {
                 delete renderer;
                 app->userData = nullptr;
+                g_assetManager = nullptr;
             }
             break;
         }

@@ -17,6 +17,11 @@ void VBO::addVertices(GLsizeiptr size, GLfloat* vertices){
     glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 };
 
+void VBO::addVertices(std::vector<glm::vec3>& vertices) {
+    glBufferData(GL_ARRAY_BUFFER, vertices.size(), vertices.data(), GL_STATIC_DRAW);
+}
+
+
 void VBO::Delete(){
     glDeleteBuffers(1, &ID);
 };
