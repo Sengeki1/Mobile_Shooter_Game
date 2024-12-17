@@ -15,8 +15,8 @@ class Texture {
         ~Texture();
 
         GLuint texture;
-private:
-    int textureWidth, textureHeight;
+    private:
+        int textureWidth, textureHeight;
         unsigned char* bytes;
 };
 
