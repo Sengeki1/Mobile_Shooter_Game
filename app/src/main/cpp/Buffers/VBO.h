@@ -14,6 +14,7 @@ class VBO {
         void Delete();
         void addVertices(GLsizeiptr size, GLfloat* vertices);
         void addVertices(std::vector<glm::vec3>& vertices);
+        void addVertices(std::vector<glm::vec2>& vertices);
     private:
         GLuint ID;
 };

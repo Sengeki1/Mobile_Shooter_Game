@@ -2,6 +2,8 @@
 
 precision mediump float;
 
+in vec3 Normal;
+in vec2 texCoords;
 out vec4 FragColor;
 
 void main() {
