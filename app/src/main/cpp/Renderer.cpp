@@ -3,10 +3,6 @@
 #include <assert.h>
 
 Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Construct
-    // Including OBJ files
-    const char* modelPath = "Models/Hand/hand.obj";  // Path inside 'assets/'
-    ptrLoader = new Loader(modelPath, g_assetManager);
-
     // SCREEN CONFIGURATIONS
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY); // set the Display as default
     assert(display); // In case of errors;
@@ -47,29 +43,12 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
-    ptrShader_2 = new Shader("model.vert", "model.frag", g_assetManager);
-
-    ptrVAO_2 = new VAO();
-    ptrVAO_2->bind();
-
-    ptrVBO_2 = new VBO();
-    ptrVBO_2->bind();
-    ptrVBO_2->addVertices(ptrLoader->vertices);
-
-    ptrEBO_2 = new EBO(ptrLoader->indices);
-
-    ptrVAO_2->LinkAttrib(0, 3, GL_FLOAT, sizeof(GLfloat) * 3, (void*)0); // a void pointer can hold an address of any type
-
-    ptrVAO_2->unbind();
-    ptrVBO_2->unbind();
-    ptrEBO_2->unbind();
+    ptrLoader = new Loader(g_assetManager);
+    ptrLoader->Mesh();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
-    ptrShader_2->Delete();
-    ptrVAO_2->Delete();
-    ptrVBO_2->Delete();
-    ptrEBO_2->Delete();
+    ptrLoader->DeleteMeshes();
 
     eglDestroyContext(display, context);
     eglDestroySurface(display, surface);
@@ -78,7 +57,8 @@ Renderer::~Renderer() { // Dis-construct for when the Function is terminating
 
 void Renderer::do_frame() {
     int width, height;
-    eglQuerySurface(display, surface, EGL_WIDTH, &width); // get width and height of the phone screen
+    eglQuerySurface(display, surface, EGL_WIDTH,
+                    &width); // get width and height of the phone screen
     eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 
     glViewport(0, 0, width, height);
@@ -88,24 +68,23 @@ void Renderer::do_frame() {
     static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
     angle += 1.0f;
 
-    ptrShader_2->Activate();
-    Renderer::setProjection(ptrShader_2, width, height);
-    ptrVAO_2->bind();
+    ptrLoader->RenderMeshes(width, height, angle);
+
+    //ptrShader_2->Activate();
+    //Renderer::setProjection(ptrShader_2, width, height);
+    //ptrVAO_2->bind();
 
     // transformations
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
-    model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
-    glUniformMatrix4fv(glGetUniformLocation(ptrShader_2->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    //glm::mat4 model = glm::mat4(1.0f);
+    //model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
+    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    //model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //model = glm::rotate(model, glm::radians(angle * 0.1f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //glUniformMatrix4fv(glGetUniformLocation(ptrShader_2->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    //glUniform1f(glGetUniformLocation(ptrShader_2->ID, "scale"), 0.5f);
 
-    glDrawElements(GL_LINE_LOOP, ptrLoader->indices.size(), GL_UNSIGNED_INT, 0);
+    //glDrawElements(GL_LINE_LOOP, ptrLoader->indices.size(), GL_UNSIGNED_INT, 0);
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);
-}
-
-void Renderer::setProjection(Shader* shader, int width, int height) {
-    float inv_aspect = (float)width / (float)height;
-    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
-    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }

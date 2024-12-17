@@ -10,15 +10,36 @@
 
 #include "../AssetManager.h"
 
+#include "../Buffers/VAO.h"
+#include "../Buffers/VBO.h"
+#include "../Buffers/EBO.h"
+#include "../Shaders/shaderClass.h"
+#include "../Textures/Texture.h"
+#include "../Renderer.h"
+
+typedef struct Mesh {
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec3> normals;
+    std::vector<glm::vec2> texCoords;
+    std::vector<unsigned int> indices;
+} Mesh_;
+
 class Loader {
     public:
-        Loader(const char *pFileName, AAssetManager* g_assetManager);
+        Loader(AAssetManager* g_assetManager);
         ~Loader();
 
-        std::vector<glm::vec3> vertices;
-        std::vector<unsigned int> indices;
+        void Mesh();
+        void DeleteMeshes();
+        void RenderMeshes(int width, int height, int angle);
     private:
         AAsset* asset;
+        std::vector<VAO> VAOs;
+        std::vector<VBO> VBOs;
+        std::vector<EBO> EBOs;
+        std::vector<Shader> Shaders;
+        std::vector<Texture> Textures;
+        std::vector<Mesh_> Meshes;
 };
 
 
