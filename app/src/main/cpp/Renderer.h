@@ -5,11 +5,6 @@
 #include <GLES3/gl3.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 
-#include "Libraries/glm/glm.hpp"
-#include "Libraries/glm/gtc/matrix_transform.hpp"
-#include "Libraries/glm/gtc/type_ptr.hpp"
-#include "Libraries/glm/gtx/string_cast.hpp"
-
 #include "Loader/Loader.h"
 
 class Renderer {

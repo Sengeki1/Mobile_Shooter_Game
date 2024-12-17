@@ -3,6 +3,7 @@
 #include <assert.h>
 
 Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Construct
+
     // SCREEN CONFIGURATIONS
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY); // set the Display as default
     assert(display); // In case of errors;
@@ -69,21 +70,6 @@ void Renderer::do_frame() {
     angle += 1.0f;
 
     ptrLoader->RenderMeshes(width, height, angle);
-
-    //ptrShader_2->Activate();
-    //Renderer::setProjection(ptrShader_2, width, height);
-    //ptrVAO_2->bind();
-
-    // transformations
-    //glm::mat4 model = glm::mat4(1.0f);
-    //model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
-    // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    //model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //model = glm::rotate(model, glm::radians(angle * 0.1f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //glUniformMatrix4fv(glGetUniformLocation(ptrShader_2->ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    //glUniform1f(glGetUniformLocation(ptrShader_2->ID, "scale"), 0.5f);
-
-    //glDrawElements(GL_LINE_LOOP, ptrLoader->indices.size(), GL_UNSIGNED_INT, 0);
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);
