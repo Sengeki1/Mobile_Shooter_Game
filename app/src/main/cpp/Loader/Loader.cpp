@@ -16,7 +16,9 @@ Loader::Loader(AAssetManager* g_assetManager) {
         Meshes.push_back(Mesh_()); // create a new instance of Mesh for storing
         Shaders.push_back(Shader(pShaderNames[k].front(), pShaderNames[k].back(), g_assetManager));
         VAOs.push_back(VAO());
-        VBOs.push_back(VBO());
+        VBOs.push_back(VBO()); // for vertices
+        VBOs.push_back(VBO()); // for normals
+        VBOs.push_back(VBO()); // for texture Coordinates
 
         asset = AAssetManager_open(g_assetManager, pFileNames[k], AASSET_MODE_BUFFER);
         if (asset) {
@@ -93,9 +95,21 @@ void Loader::Mesh() {
 
         VBOs[i].addVertices(Meshes[i].vertices);
         VAOs[i].LinkAttrib(0, 3, GL_FLOAT, sizeof(glm::vec3), (void*)0); // a void pointer can hold an address of any type
+        VBOs[i].unbind();
+
+        if (!Meshes[i].normals.empty()) {
+            VBOs[i + 1].bind();
+            VBOs[i + 1].addVertices(Meshes[i].normals);
+            VAOs[i].LinkAttrib(1, 3, GL_FLOAT, sizeof(glm::vec3), (void *) 0);
+            VBOs[i + 1].unbind();
+        }
+
+        VBOs[i + 2].bind();
+        VBOs[i + 2].addVertices(Meshes[i].texCoords);
+        VAOs[i].LinkAttrib(2, 2, GL_FLOAT, sizeof(glm::vec2), (void *) 0);
+        VBOs[i + 2].unbind();
 
         VAOs[i].unbind();
-        VBOs[i].unbind();
         EBOs[i].unbind();
     }
 }
@@ -113,11 +127,10 @@ void Loader::RenderMeshes(int width, int height, float angle) {
         // transformations
         glm::mat4 model = glm::mat4(1.0f);
         glUniform1f(glGetUniformLocation(Shaders[i].ID, "scale"), 1.0f);
-
-        if (pFileNames[i] == "Models/Pistol/gun.obj") {
+        //if (pFileNames[i] == "Models/Pistol/gun.obj") {
             model = gunTransformations(model, angle);
             glUniform1f(glGetUniformLocation(Shaders[i].ID, "scale"), 0.5f);
-        }
+        //}
         glUniformMatrix4fv(glGetUniformLocation(Shaders[i].ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
         glDrawElements(GL_LINE_LOOP, Meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
