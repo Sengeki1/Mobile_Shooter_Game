@@ -51,6 +51,7 @@ class Loader {
         std::map<int, std::list<const char*>> pShaderNames;
         struct Material structMaterial;
         const aiScene *scene;
+        std::vector<int> totalMesh;
 
         std::vector<VAO> VAOs;
         std::vector<VBO> VBOs;

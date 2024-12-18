@@ -46,7 +46,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     glEnable(GL_DEPTH_TEST);
 
     ptrLoader = new Loader(g_assetManager);
-    ptrLoader->Mesh();
+    //ptrLoader->Mesh();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
