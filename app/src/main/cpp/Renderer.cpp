@@ -46,7 +46,6 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     glEnable(GL_DEPTH_TEST);
 
     ptrLoader = new Loader(g_assetManager);
-    //ptrLoader->Mesh();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating
@@ -65,6 +64,7 @@ void Renderer::do_frame() {
 
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     // deltaTime
     static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.

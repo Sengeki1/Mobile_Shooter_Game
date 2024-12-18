@@ -59,5 +59,7 @@ void android_main(android_app *app) {
         Renderer* renderer = (Renderer*) app->userData;
         renderer->do_frame();
 
+        if (app->destroyRequested) renderer->ptrLoader->DeleteMeshes();
+
     } while (!app->destroyRequested);
 }

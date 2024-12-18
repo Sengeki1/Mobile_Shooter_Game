@@ -52,6 +52,7 @@ class Loader {
         struct Material structMaterial;
         const aiScene *scene;
         std::vector<int> totalMesh;
+        static int* ptrIntex;
 
         std::vector<VAO> VAOs;
         std::vector<VBO> VBOs;
