@@ -2,15 +2,17 @@
 
 Loader::Loader(AAssetManager* g_assetManager) {
     // Load OBJ files
-    pFileNames = {  std::pair<int, const char*>(0, "Models/Hand/hand.obj"),
-                    std::pair<int, const char*>(1, "Models/City Block/model.obj"),
-                    std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
-                    std::pair<int, const char*>(3, "Models/Pistol/gun.obj") };
+    pFileNames = {std::pair<int, const char*>(0, "Models/Pistol/gun.obj"),
+                  //std::pair<int, const char*>(1, "Models/City Block/model.obj"),
+                  //std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
+                  //std::pair<int, const char *>(3, "Models/Hand/hand.obj")
+    };
 
-    pShaderNames = {  std::pair <int, std::list<const char*>>(0, {"model.vert", "model.frag"}),
-                      std::pair <int, std::list<const char*>>(1, {"model.vert", "model.frag"}),
-                      std::pair <int, std::list<const char*>>(2, {"model.vert", "model.frag"}),
-                      std::pair <int, std::list<const char*>>(3, {"model.vert", "model.frag"}) };
+    pShaderNames = {  std::pair <int, std::list<const char*>>(0, {"Shaders/Gun/model.vert", "Shaders/Gun/model.frag"}),
+                      //std::pair <int, std::list<const char*>>(1, {"Shaders/City/model.vert", "Shaders/City/model.frag"}),
+                      //std::pair <int, std::list<const char*>>(2, {"Shaders/Zombie/model.vert", "Shaders/Zombie/model.frag"}),
+                      //std::pair <int, std::list<const char*>>(3, {"Shaders/Hand/model.vert", "Shaders/Hand/model.frag"})
+    };
 
     for (int k = 0; k < pFileNames.size(); k++) {
         Meshes.push_back(Mesh_()); // create a new instance of Mesh for storing
@@ -30,21 +32,34 @@ Loader::Loader(AAssetManager* g_assetManager) {
 
             // Now pass the assetData to Assimp
             Assimp::Importer importer;
-            const aiScene *scene = importer.ReadFileFromMemory(assetData, assetSize,
+            scene = importer.ReadFileFromMemory(assetData, assetSize,
                                                                aiProcess_JoinIdenticalVertices |
                                                                aiProcess_SortByPType |
                                                                aiProcess_FlipUVs |
-                                                               aiProcess_Triangulate);
+                                                               aiProcess_Triangulate |
+                                                               aiProcess_GenSmoothNormals |
+                                                               aiProcess_CalcTangentSpace |
+                                                               aiProcess_PreTransformVertices);
 
             if (scene) {
                 int vertices_accumulation = 0;
                 const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
+
+                if (scene->HasMaterials()) {
+                    for (int i = 0; i < scene->mNumMaterials; i++) {
+                        aiString name;
+                        scene->mMaterials[i]->Get(AI_MATKEY_NAME, name);
+                        __android_log_print(ANDROID_LOG_INFO, "LOG", "Material Name: %s", name.C_Str());
+                        //materials.push_back(getMaterial(scene->mMaterials[i], Shaders[k]));
+                    }
+                }
+
                 /* Go through each mesh in the scene. */
                 for (int i = 0; i < scene->mNumMeshes; i++) {
                     /* Add all the vertices in the mesh to our array. */
                     for (int j = 0; j < scene->mMeshes[i]->mNumVertices; j++) {
                         const aiVector3D &vector = scene->mMeshes[i]->mVertices[j];
-                        const aiVector3D &texCoord = scene->mMeshes[i]->HasTextureCoords(0) ? (scene->mMeshes[i]->mTextureCoords[0][i]) : Zero3D;
+                        const aiVector3D &texCoord = scene->mMeshes[i]->HasTextureCoords(0) ? (scene->mMeshes[i]->mTextureCoords[0][j]) : Zero3D;
 
                         Meshes[k].vertices.push_back(glm::vec3(vector.x, vector.y, vector.z));
                         Meshes[k].texCoords.push_back(glm::vec2(texCoord.x, texCoord.y));
@@ -63,8 +78,6 @@ Loader::Loader(AAssetManager* g_assetManager) {
                         Meshes[k].indices.push_back(face.mIndices[1] + vertices_accumulation);
                         Meshes[k].indices.push_back(face.mIndices[2] + vertices_accumulation);
                     }
-
-                    __android_log_print(ANDROID_LOG_INFO, "LOG", "vertices %zu", Meshes[k].vertices.size());
 
                     /* Keep track of number of vertices loaded so far to use as an offset for the indices. */
                     vertices_accumulation += scene->mMeshes[i]->mNumVertices;
@@ -126,14 +139,11 @@ void Loader::RenderMeshes(int width, int height, float angle) {
 
         // transformations
         glm::mat4 model = glm::mat4(1.0f);
-        glUniform1f(glGetUniformLocation(Shaders[i].ID, "scale"), 1.0f);
-        //if (pFileNames[i] == "Models/Pistol/gun.obj") {
-            model = gunTransformations(model, angle);
-            glUniform1f(glGetUniformLocation(Shaders[i].ID, "scale"), 0.5f);
-        //}
+        model = gunTransformations(model, angle);
+        glUniform1f(glGetUniformLocation(Shaders[i].ID, "scale"), 0.5f);
         glUniformMatrix4fv(glGetUniformLocation(Shaders[i].ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
-        glDrawElements(GL_LINE_LOOP, Meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, Meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
     }
 }
 
@@ -171,9 +181,29 @@ glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle) {
     return model;
 }
 
+void Loader::LoadMTL(AAssetManager* g_assetManager) {
+    AAsset*
+}
 
+Material Loader::getMaterial(aiMaterial *material, Shader& shader) {
 
+    aiColor3D diffuseColor(0.0f, 0.0f, 0.0f);
+    if (material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor) == AI_SUCCESS ) {
+        structMaterial.diffuse = glm::vec3(diffuseColor.r, diffuseColor.g, diffuseColor.b);
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s", glm::to_string(structMaterial.diffuse).c_str());
+    }
 
+    aiColor3D specularColor(0.0f, 0.0f, 0.0f);
+    if (material->Get(AI_MATKEY_COLOR_SPECULAR, specularColor) == AI_SUCCESS) {
+        structMaterial.specular = glm::vec3(specularColor.r, specularColor.g, specularColor.b);
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ specular: %s", glm::to_string(structMaterial.specular).c_str());
+    }
 
+    float shininess;
+    if (material->Get(AI_MATKEY_SHININESS, shininess) == AI_SUCCESS) {
+        structMaterial.shininess = shininess;
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f", structMaterial.shininess);
+    }
 
-
+    return structMaterial;
+}
