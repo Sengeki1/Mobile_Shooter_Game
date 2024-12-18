@@ -41,6 +41,8 @@ Loader::Loader(AAssetManager* g_assetManager) {
                                                                aiProcess_CalcTangentSpace |
                                                                aiProcess_PreTransformVertices);
 
+            LoadMTL(g_assetManager);
+
             if (scene) {
                 int vertices_accumulation = 0;
                 const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
@@ -182,7 +184,16 @@ glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle) {
 }
 
 void Loader::LoadMTL(AAssetManager* g_assetManager) {
-    AAsset*
+    AAsset* mtlAsset = AAssetManager_open(g_assetManager, "Models/Pistol/gun.mtl", AASSET_MODE_BUFFER);
+    size_t assetSize = AAsset_getLength(mtlAsset);
+    const char* assetData[assetSize];
+
+    AAsset_read(mtlAsset, assetData, assetSize);
+    AAsset_close(mtlAsset);
+
+    if (mtlAsset != nullptr) {
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", assetData);
+    }
 }
 
 Material Loader::getMaterial(aiMaterial *material, Shader& shader) {
