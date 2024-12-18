@@ -18,6 +18,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
                 EGL_RED_SIZE, 8,
                 EGL_BLUE_SIZE, 8,
                 EGL_GREEN_SIZE, 8,
+                EGL_DEPTH_SIZE, 24,
                 EGL_NONE
         };
 
@@ -45,7 +46,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     glEnable(GL_DEPTH_TEST);
 
     ptrLoader = new Loader(g_assetManager);
-    ptrLoader->Mesh();
+    //ptrLoader->Mesh();
 }
 
 Renderer::~Renderer() { // Dis-construct for when the Function is terminating

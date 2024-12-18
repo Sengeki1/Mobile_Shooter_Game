@@ -29,6 +29,12 @@ typedef struct Mesh {
     std::vector<unsigned int> indices;
 } Mesh_;
 
+struct Material {
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float shininess;
+};
+
 class Loader {
     public:
         Loader(AAssetManager* g_assetManager);
@@ -36,12 +42,16 @@ class Loader {
 
         void Mesh();
         void DeleteMeshes();
+        void LoadMTL(AAssetManager* g_assetManager);
         void RenderMeshes(int width, int height, float angle);
 
     private:
         AAsset* asset;
         std::map<int, const char*> pFileNames;
         std::map<int, std::list<const char*>> pShaderNames;
+        struct Material structMaterial;
+        const aiScene *scene;
+        std::vector<int> totalMesh;
 
         std::vector<VAO> VAOs;
         std::vector<VBO> VBOs;
@@ -49,10 +59,13 @@ class Loader {
         std::vector<Shader> Shaders;
         std::vector<Texture> Textures;
         std::vector<Mesh_> Meshes;
+        std::vector<Material> materials;
 
         glm::mat4 enemyTransformations(glm::mat4 &model, float angle);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle);
+
+        Material getMaterial(aiMaterial *material, Shader& shader);
 };
 
 
