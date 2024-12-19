@@ -14,13 +14,13 @@ class Renderer {
 
         void do_frame();
 
+        Loader* ptrLoader;
+
     private:
         EGLDisplay display; // Serves as connection for both Android Display and GLES
         EGLConfig config;
         EGLSurface surface;
         EGLContext context; // to run OpenGL calls
-
-        Loader* ptrLoader;
 };
 
 

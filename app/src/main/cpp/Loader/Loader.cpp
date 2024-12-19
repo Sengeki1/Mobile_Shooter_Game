@@ -2,24 +2,21 @@
 
 Loader::Loader(AAssetManager* g_assetManager) {
     // Load OBJ files
-    pFileNames = {//std::pair<int, const char*>(0, "Models/Pistol/gun.obj"),
-                  //std::pair<int, const char*>(1, "Models/City Block/model.obj"),
-                  //std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
-                  std::pair<int, const char *>(0, "Models/Hand/hand.obj")
+    pFileNames = {  std::pair<int, const char*>(0, "Models/Pistol/gun.obj"),
+                    //std::pair<int, const char*>(1, "Models/City Block/model.obj"),
+                    //std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
+                    std::pair<int, const char *>(1, "Models/Hand/hand.obj")
     };
 
-    pShaderNames = {  //std::pair <int, std::list<const char*>>(0, {"Shaders/Gun/model.vert", "Shaders/Gun/model.frag"}),
+    pShaderNames = {  std::pair <int, std::list<const char*>>(0, {"Shaders/Gun/model.vert", "Shaders/Gun/model.frag"}),
                       //std::pair <int, std::list<const char*>>(1, {"Shaders/City/model.vert", "Shaders/City/model.frag"}),
                       //std::pair <int, std::list<const char*>>(2, {"Shaders/Zombie/model.vert", "Shaders/Zombie/model.frag"}),
-                      std::pair <int, std::list<const char*>>(0, {"Shaders/Hand/model.vert", "Shaders/Hand/model.frag"})
+                      std::pair <int, std::list<const char*>>(1, {"Shaders/Hand/model.vert", "Shaders/Hand/model.frag"})
     };
 
     for (int k = 0; k < pFileNames.size(); k++) {
         Meshes.push_back(Mesh_()); // create a new instance of Mesh for storing
-//        VAOs.push_back(VAO());
-//        VBOs.push_back(VBO()); // for vertices
-//        VBOs.push_back(VBO()); // for normals
-//        VBOs.push_back(VBO()); // for texture Coordinates
+        int vertices_accumulation = 0;
 
         asset = AAssetManager_open(g_assetManager, pFileNames[k], AASSET_MODE_BUFFER);
         if (asset) {
@@ -32,13 +29,13 @@ Loader::Loader(AAssetManager* g_assetManager) {
             // Now pass the assetData to Assimp
             Assimp::Importer importer;
             scene = importer.ReadFileFromMemory(assetData, assetSize,
-                                                               aiProcess_JoinIdenticalVertices |
-                                                               aiProcess_SortByPType |
-                                                               aiProcess_FlipUVs |
-                                                               aiProcess_Triangulate |
-                                                               aiProcess_GenSmoothNormals |
-                                                               aiProcess_CalcTangentSpace |
-                                                               aiProcess_PreTransformVertices);
+                                                aiProcess_JoinIdenticalVertices |
+                                                aiProcess_SortByPType |
+                                                aiProcess_FlipUVs |
+                                                aiProcess_Triangulate |
+                                                aiProcess_GenSmoothNormals |
+                                                aiProcess_CalcTangentSpace |
+                                                aiProcess_PreTransformVertices);
 
             LoadMTL(g_assetManager);
 
@@ -56,9 +53,10 @@ Loader::Loader(AAssetManager* g_assetManager) {
 
                 /* Go through each mesh in the scene. */
                 totalMesh.push_back(0);
+                static int indexMesh = 0; // because am adding VAOs and VBOs for each Mesh i need to increment the index
+                // so i can iterate the CORRECT VBO and VAO for each Mesh
                 for (int i = 0; i < scene->mNumMeshes; i++) {
-                    static int vertices_accumulation = 0;
-                    totalMesh[k]++;
+                    totalMesh[k]++; // this serves to count the total Mesh in a model
                     Shaders.push_back(Shader(pShaderNames[k].front(), pShaderNames[k].back(), g_assetManager));
                     VAOs.push_back(VAO());
                     VBOs.push_back(VBO()); // for vertices
@@ -87,31 +85,32 @@ Loader::Loader(AAssetManager* g_assetManager) {
                         Meshes[k].indices.push_back(face.mIndices[2] + vertices_accumulation);
                     }
 
-                    VAOs[i].bind();
-                    VBOs[i].bind();
+                    VAOs[indexMesh].bind();
+                    VBOs[indexMesh * 3].bind();
                     EBOs.push_back(EBO(Meshes[k].indices));
 
-                    VBOs[i].addVertices(Meshes[k].vertices);
-                    VAOs[i].LinkAttrib(0, 3, GL_FLOAT, sizeof(glm::vec3), (void*)0); // a void pointer can hold an address of any type
-                    VBOs[i].unbind();
+                    VBOs[indexMesh * 3].addVertices(Meshes[k].vertices);
+                    VAOs[indexMesh].LinkAttrib(0, 3, GL_FLOAT, sizeof(GLfloat) * 3, (void*)0); // a void pointer can hold an address of any type
+                    VBOs[indexMesh * 3].unbind();
 
                     if (!Meshes[k].normals.empty()) {
-                        VBOs[3 * i + 1].bind();
-                        VBOs[3 * i + 1].addVertices(Meshes[k].normals);
-                        VAOs[i].LinkAttrib(1, 3, GL_FLOAT, sizeof(glm::vec3), (void *) 0);
-                        VBOs[3 * i + 1].unbind();
+                        VBOs[indexMesh * 3 + 1].bind();
+                        VBOs[indexMesh * 3 + 1].addVertices(Meshes[k].normals);
+                        VAOs[indexMesh].LinkAttrib(1, 3, GL_FLOAT, sizeof(GLfloat) * 3, (void *)0);
+                        VBOs[indexMesh * 3 + 1].unbind();
                     }
 
-                    VBOs[3 * i + 2].bind();
-                    VBOs[3 * i + 2].addVertices(Meshes[k].texCoords);
-                    VAOs[i].LinkAttrib(2, 2, GL_FLOAT, sizeof(glm::vec2), (void *) 0);
-                    VBOs[3 * i + 2].unbind();
+                    VBOs[indexMesh * 3 + 2].bind();
+                    VBOs[indexMesh * 3 + 2].addVertices(Meshes[k].texCoords);
+                    VAOs[indexMesh].LinkAttrib(2, 2, GL_FLOAT, sizeof(GLfloat) * 2, (void *)0);
+                    VBOs[indexMesh * 3 + 2].unbind();
 
-                    VAOs[i].unbind();
-                    EBOs[i].unbind();
+                    VAOs[indexMesh].unbind();
+                    EBOs.back().unbind();
 
                     /* Keep track of number of vertices loaded so far to use as an offset for the indices. */
                     vertices_accumulation += scene->mMeshes[i]->mNumVertices;
+                    indexMesh++;
                 }
                 __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ Successfully");
 
@@ -131,63 +130,42 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-//void Loader::Mesh() {
-//    for (int i = 0; i < Meshes.size(); i++) {
-//        VAOs[i].bind();
-//        VBOs[i].bind();
-//        EBOs.push_back(EBO(Meshes[i].indices));
-//
-//        VBOs[i].addVertices(Meshes[i].vertices);
-//        VAOs[i].LinkAttrib(0, 3, GL_FLOAT, sizeof(glm::vec3), (void*)0); // a void pointer can hold an address of any type
-//        VBOs[i].unbind();
-//
-//        if (!Meshes[i].normals.empty()) {
-//            VBOs[i + 1].bind();
-//            VBOs[i + 1].addVertices(Meshes[i].normals);
-//            VAOs[i].LinkAttrib(1, 3, GL_FLOAT, sizeof(glm::vec3), (void *) 0);
-//            VBOs[i + 1].unbind();
-//        }
-//
-//        VBOs[i + 2].bind();
-//        VBOs[i + 2].addVertices(Meshes[i].texCoords);
-//        VAOs[i].LinkAttrib(2, 2, GL_FLOAT, sizeof(glm::vec2), (void *) 0);
-//        VBOs[i + 2].unbind();
-//
-//        VAOs[i].unbind();
-//        EBOs[i].unbind();
-//    }
-//}
-
 void Loader::RenderMeshes(int width, int height, float angle) {
+    int indexMesh = 0;
     for (int k = 0; k < Meshes.size(); k++) {
         for (int i = 0; i < totalMesh[k]; i++) {
-            Shaders[i].Activate();
+            Shaders[indexMesh].Activate();
             // Projection
             float inv_aspect = (float) width / (float) height;
             glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
-            glUniformMatrix4fv(glGetUniformLocation(Shaders[i].ID, "projection"), 1, GL_FALSE,
+            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "projection"), 1, GL_FALSE,
                                glm::value_ptr(projection));
-            VAOs[i].bind();
+            VAOs[indexMesh].bind();
 
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
             model = gunTransformations(model, angle);
-            glUniform1f(glGetUniformLocation(Shaders[i].ID, "scale"), 0.5f);
-            glUniformMatrix4fv(glGetUniformLocation(Shaders[i].ID, "model"), 1, GL_FALSE,
+            glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "scale"), 0.5f);
+            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "model"), 1, GL_FALSE,
                                glm::value_ptr(model));
 
             glDrawElements(GL_TRIANGLES, Meshes[k].indices.size(), GL_UNSIGNED_INT, 0);
+
+            indexMesh++;
         }
     }
 }
 
 void Loader::DeleteMeshes() {
+    int indexMesh = 0;
     for (int k = 0; k < Meshes.size(); k++) {
         for (int i = 0; i < totalMesh[k]; i++) {
-            Shaders[i].Delete();
-            VAOs[i].Delete();
-            VBOs[i].Delete();
-            EBOs[i].Delete();
+            Shaders[indexMesh].Delete();
+            VAOs[indexMesh].Delete();
+            VBOs[indexMesh].Delete();
+            EBOs[indexMesh].Delete();
+
+            indexMesh++;
         }
     }
 }
