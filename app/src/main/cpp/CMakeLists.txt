@@ -22,6 +22,8 @@ set(SHADERS_SOURCES
 
 set(LOADER_SOURCE Loader/Loader.cpp)
 
+set(FILEIO_SOURCE FileIO/FileIO.cpp)
+
 # Creates your game shared library. The name must be the same as the
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
 add_library(shootergame SHARED
@@ -30,6 +32,7 @@ add_library(shootergame SHARED
         ${SHADERS_SOURCES}
         ${TEXTURES_SOURCES}
         ${LOADER_SOURCE}
+        ${FILEIO_SOURCE}
         stb.cpp
         Renderer.cpp
 )

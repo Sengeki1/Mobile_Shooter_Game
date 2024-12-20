@@ -3,16 +3,12 @@
 Loader::Loader(AAssetManager* g_assetManager) {
     // Load OBJ files
     pFileNames = {  std::pair<int, const char*>(0, "Models/Pistol/gun.obj"),
-                    //std::pair<int, const char*>(1, "Models/City Block/model.obj"),
-                    //std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
-                    std::pair<int, const char *>(1, "Models/Hand/hand.obj")
+                    std::pair<int, const char*>(1, "Models/City Block/model.obj"),
+                    std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
+                    std::pair<int, const char*>(3, "Models/Hand/hand.obj")
     };
 
-    pShaderNames = {  std::pair <int, std::list<const char*>>(0, {"Shaders/Gun/model.vert", "Shaders/Gun/model.frag"}),
-                      //std::pair <int, std::list<const char*>>(1, {"Shaders/City/model.vert", "Shaders/City/model.frag"}),
-                      //std::pair <int, std::list<const char*>>(2, {"Shaders/Zombie/model.vert", "Shaders/Zombie/model.frag"}),
-                      std::pair <int, std::list<const char*>>(1, {"Shaders/Hand/model.vert", "Shaders/Hand/model.frag"})
-    };
+    shader = {"Shaders/model.vert", "Shaders/model.frag"};
 
     for (int k = 0; k < pFileNames.size(); k++) {
         Meshes.push_back(Mesh_()); // create a new instance of Mesh for storing
@@ -57,7 +53,7 @@ Loader::Loader(AAssetManager* g_assetManager) {
                 // so i can iterate the CORRECT VBO and VAO for each Mesh
                 for (int i = 0; i < scene->mNumMeshes; i++) {
                     totalMesh[k]++; // this serves to count the total Mesh in a model
-                    Shaders.push_back(Shader(pShaderNames[k].front(), pShaderNames[k].back(), g_assetManager));
+                    Shaders.push_back(Shader(shader.front(), shader.back(), g_assetManager));
                     VAOs.push_back(VAO());
                     VBOs.push_back(VBO()); // for vertices
                     VBOs.push_back(VBO()); // for normals
@@ -119,7 +115,6 @@ Loader::Loader(AAssetManager* g_assetManager) {
             }
 
             free(assetData);
-            //scene = nullptr;
         } else {
             __android_log_print(ANDROID_LOG_ERROR, "LOG", "Failed to Load Asset Path");
         }
@@ -144,7 +139,11 @@ void Loader::RenderMeshes(int width, int height, float angle) {
 
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
-            model = gunTransformations(model, angle);
+            if (pFileNames[k] == "Models/Pistol/gun.obj") {
+                model = gunTransformations(model, angle);
+            } else {
+                model = enemyTransformations(model, angle);
+            }
             glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "scale"), 0.5f);
             glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "model"), 1, GL_FALSE,
                                glm::value_ptr(model));
@@ -179,7 +178,7 @@ glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle) {
 }
 
 glm::mat4 Loader::enemyTransformations(glm::mat4& model, float angle) {
-    model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
+    model = glm::translate(model, glm::vec3(0.0f, 0.5f, -3.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(angle * 0.1f), glm::vec3(0.0f, 1.0f, 0.0f));
 
