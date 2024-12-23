@@ -2,13 +2,17 @@
 
 Loader::Loader(AAssetManager* g_assetManager) {
     // Load OBJ files
-    pFileNames = {  std::pair<int, const char*>(0, "Models/Pistol/gun.obj"),
-                    std::pair<int, const char*>(1, "Models/Hand/hand.obj")
+    pFileNames = {  std::pair<int, const char*>(0, "Models/Zombie/zombo.obj"),
+                    std::pair<int, const char*>(1, "Models/Hand/hand.obj"),
+                    std::pair<int, const char*>(2, "Models/Pistol/gun.obj"),
+                    std::pair<int, const char*>(3, "Models/City Block/model.obj")
     };
 
     // Load MTL files
-    pMTLFileNames = {   std::pair<int, const char*>(0, "Models/Pistol/gun.mtl"),
-                        std::pair<int, const char*>(1, "Models/Hand/hand.mtl")
+    pMTLFileNames = {   std::pair<int, const char*>(0, "Models/Zombie/zombo.mtl"),
+                        std::pair<int, const char*>(1, "Models/Hand/hand.mtl"),
+                        std::pair<int, const char*>(2, "Models/Pistol/gun.mtl"),
+                        std::pair<int, const char*>(3, "Models/City Block/materials.mtl")
     };
 
     shader = {"Shaders/model.vert", "Shaders/model.frag"};
@@ -134,8 +138,7 @@ void Loader::RenderMeshes(int width, int height, float angle) {
             // Projection
             float inv_aspect = (float) width / (float) height;
             glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
-            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "projection"), 1, GL_FALSE,
-                               glm::value_ptr(projection));
+            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
             VAOs[indexMesh].bind();
 
             // transformations
@@ -146,8 +149,14 @@ void Loader::RenderMeshes(int width, int height, float angle) {
                 model = enemyTransformations(model, angle);
             }
             glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "scale"), 0.5f);
-            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "model"), 1, GL_FALSE,
-                               glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
+
+            // Materials
+            glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"), materials[indexMesh].diffuse.x,
+                        materials[indexMesh].diffuse.y, materials[indexMesh].diffuse.z);
+            glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "specular"), materials[indexMesh].specular.x,
+                        materials[indexMesh].specular.y, materials[indexMesh].specular.z);
+            glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "shininess"), materials[indexMesh].shininess);
 
             glDrawElements(GL_TRIANGLES, Meshes[k].indices.size(), GL_UNSIGNED_INT, 0);
 
@@ -206,36 +215,33 @@ void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int ind
 
     if (mtlAsset != nullptr) {
         FileIO mtlFile(&assetData);
-        structMaterial.diffuse = glm::vec3(mtlFile.Kd[index * 3], mtlFile.Kd[index * 3 + 1], mtlFile.Kd[index * 3 + 2]); // instead of static indice put the iterator of the material
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s", glm::to_string(structMaterial.diffuse).c_str());
-        //structMaterial.specular = glm::vec3(mtlFile.Ks[index], mtlFile.Ks[index + 1], mtlFile.Ks[index + 2]);
-        //__android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ specular: %s", glm::to_string(structMaterial.specular).c_str());
-        //structMaterial.shininess = mtlFile.d[index];
-        //__android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f", structMaterial.shininess);
-        //materials.push_back(structMaterial);
+        if (!mtlFile.Kd.empty()) {
+            __android_log_print(ANDROID_LOG_INFO, "LOG", "A");
+            structMaterial.diffuse = glm::vec3(mtlFile.Kd[index * 3], mtlFile.Kd[index * 3 + 1],
+                                               mtlFile.Kd[index * 3 + 2]); // instead of static indice put the iterator of the material
+            __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s",
+                                glm::to_string(structMaterial.diffuse).c_str());
+        } else {
+            structMaterial.diffuse = glm::vec3(0.0f);
+        }
+        if (!mtlFile.Ks.empty()) {
+            structMaterial.specular = glm::vec3(mtlFile.Ks[index], mtlFile.Ks[index + 1],
+                                                mtlFile.Ks[index + 2]);
+            __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ specular: %s",
+                                glm::to_string(structMaterial.specular).c_str());
+        } else {
+            structMaterial.specular = glm::vec3(0.0f);
+        }
+        if (!mtlFile.d.empty()) {
+            structMaterial.shininess = mtlFile.d[index];
+            __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f",
+                                structMaterial.shininess);
+            materials.push_back(structMaterial);
+        } else {
+            structMaterial.shininess = 0.0f;
+        }
+        materials.push_back(structMaterial);
+
         return;
     }
-}
-
-Material Loader::getMaterial(aiMaterial *material, Shader& shader) {
-
-    aiColor3D diffuseColor(0.0f, 0.0f, 0.0f);
-    if (material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuseColor) == AI_SUCCESS ) {
-        structMaterial.diffuse = glm::vec3(diffuseColor.r, diffuseColor.g, diffuseColor.b);
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s", glm::to_string(structMaterial.diffuse).c_str());
-    }
-
-    aiColor3D specularColor(0.0f, 0.0f, 0.0f);
-    if (material->Get(AI_MATKEY_COLOR_SPECULAR, specularColor) == AI_SUCCESS) {
-        structMaterial.specular = glm::vec3(specularColor.r, specularColor.g, specularColor.b);
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ specular: %s", glm::to_string(structMaterial.specular).c_str());
-    }
-
-    float shininess;
-    if (material->Get(AI_MATKEY_SHININESS, shininess) == AI_SUCCESS) {
-        structMaterial.shininess = shininess;
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f", structMaterial.shininess);
-    }
-
-    return structMaterial;
 }

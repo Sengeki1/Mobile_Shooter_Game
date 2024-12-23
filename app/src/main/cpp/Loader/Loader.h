@@ -66,8 +66,6 @@ class Loader {
         glm::mat4 enemyTransformations(glm::mat4 &model, float angle);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle);
-
-        Material getMaterial(aiMaterial *material, Shader& shader);
 };
 
 
