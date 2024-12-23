@@ -44,9 +44,9 @@ Loader::Loader(AAssetManager* g_assetManager) {
                 const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
                 if (scene->HasMaterials()) {
-                    for (int i = 0; i < scene->mNumMaterials - 1; i++) {
+                    for (int i = 1; i < scene->mNumMaterials; i++) {
                         aiString name;
-                        scene->mMaterials[i + 1]->Get(AI_MATKEY_NAME, name);
+                        scene->mMaterials[i]->Get(AI_MATKEY_NAME, name);
                         __android_log_print(ANDROID_LOG_INFO, "LOG", "Material Name: %s", name.C_Str());
                         LoadMTL(g_assetManager, pMTLFileNames[k], i); // maybe put an iterator like the mNumMaterials to get the specific material Kd, Ks, d
                     }
@@ -143,7 +143,7 @@ void Loader::RenderMeshes(int width, int height, float angle) {
 
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
-            if (pFileNames[k] == "Models/Pistol/gun.obj") {
+            if (pFileNames[k] == "Models/Hand/hand.obj" || pFileNames[k] == "Models/Pistol/gun.obj") {
                 model = gunTransformations(model, angle);
             } else {
                 model = enemyTransformations(model, angle);
@@ -216,7 +216,6 @@ void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int ind
     if (mtlAsset != nullptr) {
         FileIO mtlFile(&assetData);
         if (!mtlFile.Kd.empty()) {
-            __android_log_print(ANDROID_LOG_INFO, "LOG", "A");
             structMaterial.diffuse = glm::vec3(mtlFile.Kd[index * 3], mtlFile.Kd[index * 3 + 1],
                                                mtlFile.Kd[index * 3 + 2]); // instead of static indice put the iterator of the material
             __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s",
@@ -236,11 +235,11 @@ void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int ind
             structMaterial.shininess = mtlFile.d[index];
             __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f",
                                 structMaterial.shininess);
-            materials.push_back(structMaterial);
         } else {
             structMaterial.shininess = 0.0f;
         }
         materials.push_back(structMaterial);
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Materials: %zu", materials.size());
 
         return;
     }
