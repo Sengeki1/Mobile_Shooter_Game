@@ -16,6 +16,7 @@
 #include "../Buffers/EBO.h"
 #include "../Shaders/shaderClass.h"
 #include "../Textures/Texture.h"
+#include "../FileIO/FileIO.h"
 
 #include "../Libraries/glm/glm.hpp"
 #include "../Libraries/glm/gtc/matrix_transform.hpp"
@@ -42,12 +43,13 @@ class Loader {
 
         void Mesh();
         void DeleteMeshes();
-        void LoadMTL(AAssetManager* g_assetManager);
+        void LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index);
         void RenderMeshes(int width, int height, float angle);
 
     private:
         AAsset* asset;
         std::map<int, const char*> pFileNames;
+        std::map<int, const char*>pMTLFileNames;
         std::list<const char *> shader;
         struct Material structMaterial;
         const aiScene *scene;
