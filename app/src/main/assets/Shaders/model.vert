@@ -15,7 +15,7 @@ uniform mat4 model;
 uniform float scale;
 
 void main() {
-    FragPos = vec3(model * vec4(aPos * scale, 1.0));
+    FragPos = vec3(model * vec4(aPos * scale, 1.0)); // get the world coordinates of the vertex
     gl_Position = projection * model * vec4(aPos * scale, 1.0);
     Normal = aNormal;
     texCoords = aTex;
