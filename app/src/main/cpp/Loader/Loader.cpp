@@ -3,9 +3,12 @@
 Loader::Loader(AAssetManager* g_assetManager) {
     // Load OBJ files
     pFileNames = {  std::pair<int, const char*>(0, "Models/Pistol/gun.obj"),
-                    std::pair<int, const char*>(1, "Models/City Block/model.obj"),
-                    std::pair<int, const char*>(2, "Models/Zombie/zombo.obj"),
-                    std::pair<int, const char*>(3, "Models/Hand/hand.obj")
+                    std::pair<int, const char*>(1, "Models/Hand/hand.obj")
+    };
+
+    // Load MTL files
+    pMTLFileNames = {   std::pair<int, const char*>(0, "Models/Pistol/gun.mtl"),
+                        std::pair<int, const char*>(1, "Models/Hand/hand.mtl")
     };
 
     shader = {"Shaders/model.vert", "Shaders/model.frag"};
@@ -33,17 +36,15 @@ Loader::Loader(AAssetManager* g_assetManager) {
                                                 aiProcess_CalcTangentSpace |
                                                 aiProcess_PreTransformVertices);
 
-            LoadMTL(g_assetManager);
-
             if (scene) {
                 const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
                 if (scene->HasMaterials()) {
-                    for (int i = 0; i < scene->mNumMaterials; i++) {
+                    for (int i = 0; i < scene->mNumMaterials - 1; i++) {
                         aiString name;
-                        scene->mMaterials[i]->Get(AI_MATKEY_NAME, name);
+                        scene->mMaterials[i + 1]->Get(AI_MATKEY_NAME, name);
                         __android_log_print(ANDROID_LOG_INFO, "LOG", "Material Name: %s", name.C_Str());
-                        //materials.push_back(getMaterial(scene->mMaterials[i], Shaders[k]));
+                        LoadMTL(g_assetManager, pMTLFileNames[k], i); // maybe put an iterator like the mNumMaterials to get the specific material Kd, Ks, d
                     }
                 }
 
@@ -194,16 +195,25 @@ glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle) {
     return model;
 }
 
-void Loader::LoadMTL(AAssetManager* g_assetManager) {
-    AAsset* mtlAsset = AAssetManager_open(g_assetManager, "Models/Pistol/gun.mtl", AASSET_MODE_BUFFER);
+void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index) {
+    AAsset* mtlAsset = AAssetManager_open(g_assetManager, mtlFile, AASSET_MODE_BUFFER);
     size_t assetSize = AAsset_getLength(mtlAsset);
-    const char* assetData[assetSize];
+    std::string assetData;
+    assetData.resize(assetSize);
 
-    AAsset_read(mtlAsset, assetData, assetSize);
+    AAsset_read(mtlAsset, assetData.data(), assetSize);
     AAsset_close(mtlAsset);
 
     if (mtlAsset != nullptr) {
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", assetData);
+        FileIO mtlFile(&assetData);
+        structMaterial.diffuse = glm::vec3(mtlFile.Kd[index * 3], mtlFile.Kd[index * 3 + 1], mtlFile.Kd[index * 3 + 2]); // instead of static indice put the iterator of the material
+        __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s", glm::to_string(structMaterial.diffuse).c_str());
+        //structMaterial.specular = glm::vec3(mtlFile.Ks[index], mtlFile.Ks[index + 1], mtlFile.Ks[index + 2]);
+        //__android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ specular: %s", glm::to_string(structMaterial.specular).c_str());
+        //structMaterial.shininess = mtlFile.d[index];
+        //__android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f", structMaterial.shininess);
+        //materials.push_back(structMaterial);
+        return;
     }
 }
 

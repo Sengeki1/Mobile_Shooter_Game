@@ -66,7 +66,6 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile, AAssetManager* 
     glAttachShader(ID, vertexShader);
     glAttachShader(ID, fragmentShader);
     glLinkProgram(ID);
-    __android_log_print(ANDROID_LOG_INFO, "LOG", "Shader Programs Linked \n");
 
     glDeleteShader(vertexShader); // we delete both because the program is already using them so there is no need
     glDeleteShader(fragmentShader);
