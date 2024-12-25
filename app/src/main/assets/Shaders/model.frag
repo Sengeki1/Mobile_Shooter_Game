@@ -13,7 +13,7 @@ uniform float shininess;
 
 void main() {
     float specularStrength = 0.1;
-    vec3 lightPos = vec3(0.0, 0.5, -4.0);
+    vec3 lightPos = vec3(0.0, 0.9, -9.0);
     vec3 cameraPos = vec3(0.0);
     vec3 lightDir = normalize(lightPos - FragPos);
 

@@ -2,17 +2,17 @@
 
 Loader::Loader(AAssetManager* g_assetManager) {
     // Load OBJ files
-    pFileNames = {  std::pair<int, const char*>(0, "Models/Zombie/zombo.obj"),
-                    std::pair<int, const char*>(1, "Models/Hand/hand.obj"),
-                    std::pair<int, const char*>(2, "Models/Pistol/gun.obj"),
-                    std::pair<int, const char*>(3, "Models/City Block/model.obj")
+    pFileNames = {  std::pair<int, const char*>(0, "Models/City Block/model.obj"),
+                    std::pair<int, const char*>(1, "Models/Zombie/zombo.obj"),
+                    std::pair<int, const char*>(2, "Models/Hand/hand.obj"),
+                    std::pair<int, const char*>(3, "Models/Pistol/gun.obj")
     };
 
     // Load MTL files
-    pMTLFileNames = {   std::pair<int, const char*>(0, "Models/Zombie/zombo.mtl"),
-                        std::pair<int, const char*>(1, "Models/Hand/hand.mtl"),
-                        std::pair<int, const char*>(2, "Models/Pistol/gun.mtl"),
-                        std::pair<int, const char*>(3, "Models/City Block/materials.mtl")
+    pMTLFileNames = {   std::pair<int, const char*>(0, "Models/City Block/materials.mtl"),
+                        std::pair<int, const char*>(1, "Models/Zombie/zombo.mtl"),
+                        std::pair<int, const char*>(2, "Models/Hand/hand.mtl"),
+                        std::pair<int, const char*>(3, "Models/Pistol/gun.mtl")
     };
 
     shader = {"Shaders/model.vert", "Shaders/model.frag"};
@@ -48,7 +48,7 @@ Loader::Loader(AAssetManager* g_assetManager) {
                         aiString name;
                         scene->mMaterials[i]->Get(AI_MATKEY_NAME, name);
                         __android_log_print(ANDROID_LOG_INFO, "LOG", "Material Name: %s", name.C_Str());
-                        LoadMTL(g_assetManager, pMTLFileNames[k], i); // maybe put an iterator like the mNumMaterials to get the specific material Kd, Ks, d
+                        LoadMTL(g_assetManager, pMTLFileNames[k], i - 1); // maybe put an iterator like the mNumMaterials to get the specific material Kd, Ks, d
                     }
                 }
 
@@ -143,13 +143,11 @@ void Loader::RenderMeshes(int width, int height, float angle) {
 
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
-            if (pFileNames[k] == "Models/Hand/hand.obj" || pFileNames[k] == "Models/Pistol/gun.obj") {
-                model = gunTransformations(model, angle);
+            if (k == 0 || k == 1) {
+                model = cityTransformations(model, angle, Shaders[indexMesh]);
             } else {
-                model = enemyTransformations(model, angle);
+                model = gunTransformations(model, angle, Shaders[indexMesh]);
             }
-            glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "scale"), 0.5f);
-            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
             // Materials
             glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"), materials[indexMesh].diffuse.x,
@@ -179,10 +177,11 @@ void Loader::DeleteMeshes() {
     }
 }
 
-glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle) {
-    model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
+glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
+    model = glm::translate(model, glm::vec3(0.0f, -0.9f, -2.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(angle * 0.1f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 0.5f);
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
 }
@@ -195,11 +194,11 @@ glm::mat4 Loader::enemyTransformations(glm::mat4& model, float angle) {
     return model;
 }
 
-glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle) {
-    model = glm::translate(model, glm::vec3(0.0f, -0.9f, -3.0f));
-    model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& shader) {
+    model = glm::translate(model, glm::vec3(0.0f, -0.8f, -8.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(angle * 0.1f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 20.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
 }
@@ -218,28 +217,21 @@ void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int ind
         if (!mtlFile.Kd.empty()) {
             structMaterial.diffuse = glm::vec3(mtlFile.Kd[index * 3], mtlFile.Kd[index * 3 + 1],
                                                mtlFile.Kd[index * 3 + 2]); // instead of static indice put the iterator of the material
-            __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ diffuse: %s",
-                                glm::to_string(structMaterial.diffuse).c_str());
         } else {
             structMaterial.diffuse = glm::vec3(0.0f);
         }
         if (!mtlFile.Ks.empty()) {
             structMaterial.specular = glm::vec3(mtlFile.Ks[index], mtlFile.Ks[index + 1],
                                                 mtlFile.Ks[index + 2]);
-            __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ specular: %s",
-                                glm::to_string(structMaterial.specular).c_str());
         } else {
             structMaterial.specular = glm::vec3(0.0f);
         }
         if (!mtlFile.d.empty()) {
             structMaterial.shininess = mtlFile.d[index];
-            __android_log_print(ANDROID_LOG_INFO, "LOG", "Loaded OBJ shininess: %f",
-                                structMaterial.shininess);
         } else {
             structMaterial.shininess = 0.0f;
         }
         materials.push_back(structMaterial);
-        __android_log_print(ANDROID_LOG_INFO, "LOG", "Materials: %zu", materials.size());
 
         return;
     }
