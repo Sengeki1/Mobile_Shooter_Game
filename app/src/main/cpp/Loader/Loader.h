@@ -66,6 +66,13 @@ class Loader {
         glm::mat4 enemyTransformations(glm::mat4 &model, float angle);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
+
+        // Cube Map
+        VAO* VAOCubeMap;
+        VBO* VBOCubeMap;
+        EBO* EBOCubeMap;
+        Shader *ptrCubeMapShader;
+        Texture *skybox;
 };
 
 

@@ -1,14 +1,12 @@
 #include "Loader.h"
 
 Loader::Loader(AAssetManager* g_assetManager) {
-    // Load OBJ files
     pFileNames = {  std::pair<int, const char*>(0, "Models/City Block/model.obj"),
                     std::pair<int, const char*>(1, "Models/Zombie/zombo.obj"),
                     std::pair<int, const char*>(2, "Models/Hand/hand.obj"),
                     std::pair<int, const char*>(3, "Models/Pistol/gun.obj")
     };
 
-    // Load MTL files
     pMTLFileNames = {   std::pair<int, const char*>(0, "Models/City Block/materials.mtl"),
                         std::pair<int, const char*>(1, "Models/Zombie/zombo.mtl"),
                         std::pair<int, const char*>(2, "Models/Hand/hand.mtl"),
@@ -17,6 +15,7 @@ Loader::Loader(AAssetManager* g_assetManager) {
 
     shader = {"Shaders/model.vert", "Shaders/model.frag"};
 
+    // Load OBJ files
     for (int k = 0; k < pFileNames.size(); k++) {
         Meshes.push_back(Mesh_()); // create a new instance of Mesh for storing
         int vertices_accumulation = 0;
@@ -124,6 +123,12 @@ Loader::Loader(AAssetManager* g_assetManager) {
             __android_log_print(ANDROID_LOG_ERROR, "LOG", "Failed to Load Asset Path");
         }
     }
+
+    VAOCubeMap = new VAO();
+    VBOCubeMap = new VBO();
+    EBOCubeMap = new EBO();
+    ptrCubeMapShader = new Shader("Shaders/Skybox/skybox.vert", "Shaders/Skybox/skybox.frag", g_assetManager);
+    skybox = new Texture(g_assetManager, VAOCubeMap, VBOCubeMap, EBOCubeMap);
 }
 
 Loader::~Loader() {
@@ -131,6 +136,25 @@ Loader::~Loader() {
 }
 
 void Loader::RenderMeshes(int width, int height, float angle) {
+    // CubeMap
+    // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
+    glDepthFunc(GL_LEQUAL);
+
+    ptrCubeMapShader->Activate();
+    float inv_aspect = (float) width / (float) height;
+    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    VAOCubeMap->bind();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->cubeMapTexture);
+    glDrawElements(GL_TRIANGLES, skyboxIndices.size(), GL_UNSIGNED_INT, 0);
+    VAOCubeMap->unbind();
+
+    // Switch back to the normal depth function
+    glDepthFunc(GL_LESS);
+
+    // Meshes OBJ
     int indexMesh = 0;
     for (int k = 0; k < Meshes.size(); k++) {
         for (int i = 0; i < totalMesh[k]; i++) {
@@ -164,6 +188,12 @@ void Loader::RenderMeshes(int width, int height, float angle) {
 }
 
 void Loader::DeleteMeshes() {
+    delete VAOCubeMap;
+    delete VBOCubeMap;
+    delete EBOCubeMap;
+    delete ptrCubeMapShader;
+    delete skybox;
+
     int indexMesh = 0;
     for (int k = 0; k < Meshes.size(); k++) {
         for (int i = 0; i < totalMesh[k]; i++) {
