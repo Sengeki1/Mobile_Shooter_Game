@@ -6,18 +6,33 @@
 
 #include <android/log.h>
 #include <android/asset_manager.h>
+#include <string>
+#include "../Buffers/VAO.h"
+#include "../Buffers/VBO.h"
+#include "../Buffers/EBO.h"
+#include "../Shaders/shaderClass.h"
+#include "../Mesh/Cube.h"
 
 #include "../Libraries/stb/stb_image.h"
 
+static std::string facesCubeMap[6] = {
+        "Skybox/px.bmp",
+        "Skybox/nx.bmp",
+        "Skybox/py.bmp",
+        "Skybox/ny.bmp",
+        "Skybox/pz.bmp",
+        "Skybox/nz.bmp"
+};
+
 class Texture {
     public:
-        Texture(const char* filename, AAssetManager* g_assetManager);
+        //Texture(const char* filename, AAssetManager* g_assetManager);
+        Texture(AAssetManager* g_assetManager, VAO* VAO, VBO* VBO, EBO* EBO);
         ~Texture();
 
         GLuint texture;
+        GLuint cubeMapTexture;
     private:
-        int textureWidth, textureHeight;
-        unsigned char* bytes;
 };
 
 
