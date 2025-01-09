@@ -70,7 +70,7 @@ class Loader {
         glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
         void getPerspectiveProjection(int width, int height, Shader &shader);
-        void getOrthographicProjection(int width, int height, Shader &shader);
+        void getOrthographicProjection(int width, int height, Shader* shader);
 
         // Cube Map
         VAO* VAOCubeMap;

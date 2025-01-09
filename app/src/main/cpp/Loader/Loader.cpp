@@ -132,15 +132,18 @@ Loader::Loader(AAssetManager* g_assetManager) {
 
     VAOSquare = new VAO();
     VBOSquare = new VBO();
+    EBOSquare = new EBO();
     ptrSquareShader = new Shader("Shaders/JoyStick/model.vert", "Shaders/JoyStick/model.frag", g_assetManager);
 
     VAOSquare->bind();
-    VBOSquare->addVertices(sizeof(float) * 2 * 8, square_vertices);
+    VBOSquare->addVertices(sizeof(GLfloat) * 2 * 4, square_vertices);
+    EBOSquare->addIndices(square_indices);
     VAOSquare->LinkAttrib(0, 2, GL_FLOAT, sizeof(GLfloat) * 2, (void *)0);
-    EBOSquare = new EBO(square_indices);
     VAOSquare->unbind();
     VBOSquare->unbind();
     EBOSquare->unbind();
+
+    glDisable(GL_DEPTH_TEST);
 }
 
 Loader::~Loader() {
@@ -153,9 +156,7 @@ void Loader::RenderMeshes(int width, int height, float angle) {
     glDepthFunc(GL_LEQUAL);
 
     ptrCubeMapShader->Activate();
-    float inv_aspect = (float) width / (float) height;
-    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
-    glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    Loader::getPerspectiveProjection(width, height, (* ptrCubeMapShader));
 
     VAOCubeMap->bind();
     glActiveTexture(GL_TEXTURE0);
@@ -196,6 +197,16 @@ void Loader::RenderMeshes(int width, int height, float angle) {
             indexMesh++;
         }
     }
+
+    // JoyStick
+    glDisable(GL_DEPTH_TEST);
+
+    ptrSquareShader->Activate();
+    Loader::getOrthographicProjection(width, height, ptrSquareShader);
+    VAOSquare->bind();
+    glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Loader::DeleteMeshes() {
@@ -255,9 +266,10 @@ void Loader::getPerspectiveProjection(int width, int height, Shader &shader) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
 
-void Loader::getOrthographicProjection(int width, int height, Shader &shader) {
-    glm::mat4 projection = glm::ortho(0.0f, (float) width, 0.0f, (float) height);
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+void Loader::getOrthographicProjection(int width, int height, Shader *shader) {
+    float aspect_ratio = (float)width/(float)height;
+    glm::mat4 projection = glm::ortho(-aspect_ratio, aspect_ratio, -1.0f, 1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
 
 void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index) {

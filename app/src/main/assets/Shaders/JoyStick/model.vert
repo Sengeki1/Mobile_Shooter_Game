@@ -1,11 +1,13 @@
-#version 100
+#version 300 es
 
 precision mediump float;
 
-layout (location = 0) in vec3 aPos;
+layout (location = 0) in vec2 aPos;
 
 uniform mat4 projection;
 
 void main() {
-    gl_Position = projection * vec4(aPos, 1.0);
+    vec2 pos = aPos;
+    pos.x -= 5.7;
+    gl_Position = projection * vec4(pos * 0.3, 0.0, 1.0);
 }
