@@ -10,6 +10,7 @@
 #include <list>
 
 #include "../AssetManager.h"
+#include <GLES3/gl3.h>
 
 #include "../Buffers/VAO.h"
 #include "../Buffers/VBO.h"
@@ -17,6 +18,8 @@
 #include "../Shaders/shaderClass.h"
 #include "../Textures/Texture.h"
 #include "../FileIO/FileIO.h"
+
+#include "../Mesh/Square.h"
 
 #include "../Libraries/glm/glm.hpp"
 #include "../Libraries/glm/gtc/matrix_transform.hpp"
@@ -66,6 +69,8 @@ class Loader {
         glm::mat4 enemyTransformations(glm::mat4 &model, float angle);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
+        void getPerspectiveProjection(int width, int height, Shader &shader);
+        void getOrthographicProjection(int width, int height, Shader &shader);
 
         // Cube Map
         VAO* VAOCubeMap;
@@ -73,6 +78,12 @@ class Loader {
         EBO* EBOCubeMap;
         Shader *ptrCubeMapShader;
         Texture *skybox;
+
+        // Square (JoySticks)
+        VAO* VAOSquare;
+        VBO* VBOSquare;
+        EBO* EBOSquare;
+        Shader* ptrSquareShader;
 };
 
 
