@@ -129,6 +129,18 @@ Loader::Loader(AAssetManager* g_assetManager) {
     EBOCubeMap = new EBO();
     ptrCubeMapShader = new Shader("Shaders/Skybox/skybox.vert", "Shaders/Skybox/skybox.frag", g_assetManager);
     skybox = new Texture(g_assetManager, VAOCubeMap, VBOCubeMap, EBOCubeMap);
+
+    VAOSquare = new VAO();
+    VBOSquare = new VBO();
+    ptrSquareShader = new Shader("Shaders/JoyStick/model.vert", "Shaders/JoyStick/model.frag", g_assetManager);
+
+    VAOSquare->bind();
+    VBOSquare->addVertices(sizeof(float) * 2 * 8, square_vertices);
+    VAOSquare->LinkAttrib(0, 2, GL_FLOAT, sizeof(GLfloat) * 2, (void *)0);
+    EBOSquare = new EBO(square_indices);
+    VAOSquare->unbind();
+    VBOSquare->unbind();
+    EBOSquare->unbind();
 }
 
 Loader::~Loader() {
@@ -160,9 +172,8 @@ void Loader::RenderMeshes(int width, int height, float angle) {
         for (int i = 0; i < totalMesh[k]; i++) {
             Shaders[indexMesh].Activate();
             // Projection
-            float inv_aspect = (float) width / (float) height;
-            glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
-            glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+            Loader::getPerspectiveProjection(width, height, Shaders[indexMesh]);
+
             VAOs[indexMesh].bind();
 
             // transformations
@@ -193,6 +204,11 @@ void Loader::DeleteMeshes() {
     delete EBOCubeMap;
     delete ptrCubeMapShader;
     delete skybox;
+
+    delete VAOSquare;
+    delete VBOSquare;
+    delete EBOSquare;
+    delete ptrSquareShader;
 
     int indexMesh = 0;
     for (int k = 0; k < Meshes.size(); k++) {
@@ -231,6 +247,17 @@ glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& sha
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
+}
+
+void Loader::getPerspectiveProjection(int width, int height, Shader &shader) {
+    float inv_aspect = (float) width / (float) height;
+    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+void Loader::getOrthographicProjection(int width, int height, Shader &shader) {
+    glm::mat4 projection = glm::ortho(0.0f, (float) width, 0.0f, (float) height);
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
 
 void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index) {
