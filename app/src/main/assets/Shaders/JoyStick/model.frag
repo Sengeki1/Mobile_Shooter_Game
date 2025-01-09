@@ -1,9 +1,9 @@
-#version 100
+#version 300 es
 
 precision mediump float;
 
-out vec4 fragPos;
+out vec4 FragColor;
 
 void main() {
-    fragPos = vec4(1.0, 1.0, 1.0, 0.3);
+    FragColor = vec4(1.0);
 }
