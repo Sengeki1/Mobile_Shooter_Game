@@ -80,9 +80,9 @@ class Loader {
         Texture *skybox;
 
         // Square (JoySticks)
-        VAO* VAOSquare;
-        VBO* VBOSquare;
-        EBO* EBOSquare;
+        std::vector<VAO*> VAOsSquare{4};
+        std::vector<VBO*> VBOsSquare{4};
+        std::vector<EBO*> EBOsSquare{4};
         Shader* ptrSquareShader;
 };
 

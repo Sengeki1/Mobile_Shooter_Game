@@ -22,6 +22,8 @@ set(SHADERS_SOURCES
 
 set(LOADER_SOURCE Loader/Loader.cpp)
 
+set(MESH_SOURCE Mesh/Square.cpp)
+
 set(FILEIO_SOURCE FileIO/FileIO.cpp)
 
 # Creates your game shared library. The name must be the same as the
@@ -33,6 +35,7 @@ add_library(shootergame SHARED
         ${TEXTURES_SOURCES}
         ${LOADER_SOURCE}
         ${FILEIO_SOURCE}
+        ${MESH_SOURCE}
         stb.cpp
         Renderer.cpp
 )
