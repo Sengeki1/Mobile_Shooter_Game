@@ -130,18 +130,22 @@ Loader::Loader(AAssetManager* g_assetManager) {
     ptrCubeMapShader = new Shader("Shaders/Skybox/skybox.vert", "Shaders/Skybox/skybox.frag", g_assetManager);
     skybox = new Texture(g_assetManager, VAOCubeMap, VBOCubeMap, EBOCubeMap);
 
-    VAOSquare = new VAO();
-    VBOSquare = new VBO();
-    EBOSquare = new EBO();
-    ptrSquareShader = new Shader("Shaders/JoyStick/model.vert", "Shaders/JoyStick/model.frag", g_assetManager);
+    for (int i = 0; i < 4; i++) {
+        VAOsSquare[i] = new VAO();
+        VBOsSquare[i] = new VBO();
+        EBOsSquare[i] = new EBO();
 
-    VAOSquare->bind();
-    VBOSquare->addVertices(sizeof(GLfloat) * 2 * 4, square_vertices);
-    EBOSquare->addIndices(square_indices);
-    VAOSquare->LinkAttrib(0, 2, GL_FLOAT, sizeof(GLfloat) * 2, (void *)0);
-    VAOSquare->unbind();
-    VBOSquare->unbind();
-    EBOSquare->unbind();
+        VAOsSquare[i]->bind();
+        VBOsSquare[i]->addVertices(square_vertices);
+        EBOsSquare[i]->addIndices(square_indices);
+        VAOsSquare[i]->LinkAttrib(0, 2, GL_FLOAT, sizeof(GLfloat) * 2, (void *) 0);
+        VAOsSquare[i]->unbind();
+        VBOsSquare[i]->unbind();
+        EBOsSquare[i]->unbind();
+    }
+
+    ptrSquareShader = new Shader("Shaders/JoyStick/model.vert", "Shaders/JoyStick/model.frag",
+                                 g_assetManager);
 
     glDisable(GL_DEPTH_TEST);
 }
@@ -151,8 +155,8 @@ Loader::~Loader() {
 }
 
 void Loader::RenderMeshes(int width, int height, float angle) {
-    // CubeMap
-    // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
+//    // CubeMap
+//    // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
     glDepthFunc(GL_LEQUAL);
 
     ptrCubeMapShader->Activate();
@@ -200,11 +204,16 @@ void Loader::RenderMeshes(int width, int height, float angle) {
 
     // JoyStick
     glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ptrSquareShader->Activate();
     Loader::getOrthographicProjection(width, height, ptrSquareShader);
-    VAOSquare->bind();
-    glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
+    for (int i = 0; i < 4; i++) {
+        VAOsSquare[i]->bind();
+        glUniform1i(glGetUniformLocation(ptrSquareShader->ID, "JOYSTICK_CONTROL"), i);
+        glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
+    }
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -216,9 +225,11 @@ void Loader::DeleteMeshes() {
     delete ptrCubeMapShader;
     delete skybox;
 
-    delete VAOSquare;
-    delete VBOSquare;
-    delete EBOSquare;
+    for (int i = 0; i < 4; i++) {
+        delete VAOsSquare[i];
+        delete VBOsSquare[i];
+        delete EBOsSquare[i];
+    }
     delete ptrSquareShader;
 
     int indexMesh = 0;
