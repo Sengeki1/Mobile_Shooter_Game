@@ -36,6 +36,7 @@ add_library(shootergame SHARED
         ${LOADER_SOURCE}
         ${FILEIO_SOURCE}
         ${MESH_SOURCE}
+        Touch.cpp
         stb.cpp
         Renderer.cpp
 )
