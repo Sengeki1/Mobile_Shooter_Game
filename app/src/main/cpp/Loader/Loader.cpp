@@ -189,6 +189,10 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
             // Projection
             camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
 
+            if (pFileNames[k] == "Models/Hand/hand.obj" || pFileNames[k] == "Models/Pistol/gun.obj") {
+                glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+            }
+
             VAOs[indexMesh].bind();
 
             // transformations
