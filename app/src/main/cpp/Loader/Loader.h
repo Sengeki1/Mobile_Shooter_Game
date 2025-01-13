@@ -18,6 +18,7 @@
 #include "../Shaders/shaderClass.h"
 #include "../Textures/Texture.h"
 #include "../FileIO/FileIO.h"
+#include "../Camera/Camera.h"
 
 #include "../Mesh/Square.h"
 
@@ -47,7 +48,7 @@ class Loader {
         void Mesh();
         void DeleteMeshes();
         void LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index);
-        void RenderMeshes(int width, int height, float angle);
+        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch);
 
     private:
         AAsset* asset;
@@ -66,11 +67,12 @@ class Loader {
         std::vector<Mesh_> Meshes;
         std::vector<Material> materials;
 
+        Camera camera;
+        bool newTouch = true;
+
         glm::mat4 enemyTransformations(glm::mat4 &model, float angle);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
-        void getPerspectiveProjection(int width, int height, Shader &shader);
-        void getOrthographicProjection(int width, int height, Shader* shader);
 
         // Cube Map
         VAO* VAOCubeMap;
@@ -85,6 +87,9 @@ class Loader {
         std::vector<EBO*> EBOsSquare{4};
         Shader* ptrSquareShader;
 };
+
+void getPerspectiveProjection(int width, int height, Shader &shader);
+void getOrthographicProjection(int width, int height, Shader* shader);
 
 
 #endif //SHOOTERGAME_LOADER_H

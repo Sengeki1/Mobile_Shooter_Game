@@ -154,13 +154,23 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-void Loader::RenderMeshes(int width, int height, float angle) {
+void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool* touch) {
+    if ((*touch) && newTouch) {
+        camera.firstTouch = true;
+        newTouch = false;
+    }
+    if (!(*touch)) {
+        newTouch = true;
+    } else {
+        camera.mouse(motionXY.x, motionXY.y);
+    }
+
 //    // CubeMap
 //    // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
     glDepthFunc(GL_LEQUAL);
 
     ptrCubeMapShader->Activate();
-    Loader::getPerspectiveProjection(width, height, (* ptrCubeMapShader));
+    camera.setCamera(width, height, (* ptrCubeMapShader), getPerspectiveProjection);
 
     VAOCubeMap->bind();
     glActiveTexture(GL_TEXTURE0);
@@ -177,7 +187,7 @@ void Loader::RenderMeshes(int width, int height, float angle) {
         for (int i = 0; i < totalMesh[k]; i++) {
             Shaders[indexMesh].Activate();
             // Projection
-            Loader::getPerspectiveProjection(width, height, Shaders[indexMesh]);
+            camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
 
             VAOs[indexMesh].bind();
 
@@ -208,7 +218,7 @@ void Loader::RenderMeshes(int width, int height, float angle) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ptrSquareShader->Activate();
-    Loader::getOrthographicProjection(width, height, ptrSquareShader);
+    getOrthographicProjection(width, height, ptrSquareShader);
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i]->bind();
         glUniform1i(glGetUniformLocation(ptrSquareShader->ID, "JOYSTICK_CONTROL"), i);
@@ -271,13 +281,13 @@ glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& sha
     return model;
 }
 
-void Loader::getPerspectiveProjection(int width, int height, Shader &shader) {
+void getPerspectiveProjection(int width, int height, Shader &shader) {
     float inv_aspect = (float) width / (float) height;
     glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 }
 
-void Loader::getOrthographicProjection(int width, int height, Shader *shader) {
+void getOrthographicProjection(int width, int height, Shader *shader) {
     float aspect_ratio = (float)width/(float)height;
     glm::mat4 projection = glm::ortho(-aspect_ratio, aspect_ratio, -1.0f, 1.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
