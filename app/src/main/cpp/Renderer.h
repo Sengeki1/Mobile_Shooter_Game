@@ -4,15 +4,17 @@
 #include <GLES/egl.h> // egl servers to display what we are going to render just like glfw
 #include <GLES3/gl3.h>
 #include <game-activity/native_app_glue/android_native_app_glue.h>
+#include <assert.h>
 
 #include "Loader/Loader.h"
+#include "../Camera/Camera.h"
 
 class Renderer {
     public:
         Renderer(android_app *app, AAssetManager* g_assetManager);
         ~Renderer();
 
-        void do_frame();
+        void do_frame(glm::vec2 motionXY, bool* touch);
 
         Loader* ptrLoader;
 

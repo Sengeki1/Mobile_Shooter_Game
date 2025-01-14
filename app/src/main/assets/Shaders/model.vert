@@ -11,12 +11,13 @@ out vec2 texCoords;
 out vec3 FragPos;
 
 uniform mat4 projection;
+uniform mat4 view;
 uniform mat4 model;
 uniform float scale;
 
 void main() {
     FragPos = vec3(model * vec4(aPos * scale, 1.0)); // get the world coordinates of the vertex
-    gl_Position = projection * model * vec4(aPos * scale, 1.0);
+    gl_Position = (projection * view) * model * vec4(aPos * scale, 1.0);
     Normal = aNormal;
     texCoords = aTex;
 }

@@ -26,6 +26,8 @@ set(MESH_SOURCE Mesh/Square.cpp)
 
 set(FILEIO_SOURCE FileIO/FileIO.cpp)
 
+set(CAMERA_SOURCE Camera/Camera.cpp)
+
 # Creates your game shared library. The name must be the same as the
 # one used for loading in your Kotlin/Java or AndroidManifest.txt files.
 add_library(shootergame SHARED
@@ -36,6 +38,7 @@ add_library(shootergame SHARED
         ${LOADER_SOURCE}
         ${FILEIO_SOURCE}
         ${MESH_SOURCE}
+        ${CAMERA_SOURCE}
         Touch.cpp
         stb.cpp
         Renderer.cpp

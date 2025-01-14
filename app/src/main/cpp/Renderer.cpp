@@ -1,7 +1,5 @@
 #include "Renderer.h"
 
-#include <assert.h>
-
 Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Construct
 
     // SCREEN CONFIGURATIONS
@@ -18,7 +16,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
                 EGL_RED_SIZE, 8,
                 EGL_BLUE_SIZE, 8,
                 EGL_GREEN_SIZE, 8,
-                EGL_DEPTH_SIZE, 24,
+                EGL_DEPTH_SIZE, 16,
                 EGL_NONE
         };
 
@@ -56,7 +54,7 @@ Renderer::~Renderer() { // Dis-construct for when the Function is terminating
     eglTerminate(display);
 }
 
-void Renderer::do_frame() {
+void Renderer::do_frame(glm::vec2 motionXY, bool* touch) {
     int width, height;
     eglQuerySurface(display, surface, EGL_WIDTH,
                     &width); // get width and height of the phone screen
@@ -70,7 +68,7 @@ void Renderer::do_frame() {
     static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
     angle += 1.0f;
 
-    ptrLoader->RenderMeshes(width, height, angle);
+    ptrLoader->RenderMeshes(width, height, angle, motionXY, &(*touch));
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);
