@@ -189,7 +189,7 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
             // Projection
             camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
 
-            if (pFileNames[k] == "Models/Hand/hand.obj" || pFileNames[k] == "Models/Pistol/gun.obj") {
+            if (k == 2 || k == 3) {
                 glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
             }
 
@@ -279,7 +279,7 @@ glm::mat4 Loader::enemyTransformations(glm::mat4& model, float angle) {
 glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& shader) {
     model = glm::translate(model, glm::vec3(0.0f, -0.8f, -8.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 20.0f);
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 10.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;

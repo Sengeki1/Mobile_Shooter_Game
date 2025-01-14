@@ -25,3 +25,7 @@ glm::vec2 getMotionXY(android_app *app, bool* touch) {
 
     return motionXY;
 }
+
+void move(glm::vec2 motionXY) {
+    // convert to ndc
+}
