@@ -130,17 +130,24 @@ Loader::Loader(AAssetManager* g_assetManager) {
     ptrCubeMapShader = new Shader("Shaders/Skybox/skybox.vert", "Shaders/Skybox/skybox.frag", g_assetManager);
     skybox = new Texture(g_assetManager, VAOCubeMap, VBOCubeMap, EBOCubeMap);
 
+    square_normals = squareNormals();
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i] = new VAO();
         VBOsSquare[i] = new VBO();
+        VBOsSquareNormals[i] = new VBO();
         EBOsSquare[i] = new EBO();
 
         VAOsSquare[i]->bind();
         VBOsSquare[i]->addVertices(square_vertices);
+        VBOsSquareNormals[i]->addVertices(square_normals);
         EBOsSquare[i]->addIndices(square_indices);
+        VBOsSquare[i]->bind();
         VAOsSquare[i]->LinkAttrib(0, 2, GL_FLOAT, sizeof(GLfloat) * 2, (void *) 0);
+        VBOsSquareNormals[i]->bind();
+        VAOsSquare[i]->LinkAttrib(1, 3, GL_FLOAT, sizeof(GLfloat) * 3, (void *) 0);
         VAOsSquare[i]->unbind();
         VBOsSquare[i]->unbind();
+        VBOsSquareNormals[i]->unbind();
         EBOsSquare[i]->unbind();
     }
 
@@ -222,9 +229,27 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ptrSquareShader->Activate();
-    getOrthographicProjection(width, height, ptrSquareShader);
+    glm::mat4 projection = getOrthographicProjection(width, height, ptrSquareShader);
+
+    // convert to ndc
+    glm::vec3 ray_direction = convertNDC(motionXY, width, height, projection);
+    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(ray_direction).c_str());
+
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i]->bind();
+
+        // check intersection with squares
+        for (int j = 0; j < square_normals.size(); j++) {
+            float t = -(glm::dot(camera.position, square_normals[j])) / glm::dot(ray_direction, square_normals[j]);
+
+            //__android_log_print(ANDROID_LOG_INFO, "LOG", "%f", t);
+            if (t > 0) {
+                __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", t);
+            }
+        }
+
+        // move
+
         glUniform1i(glGetUniformLocation(ptrSquareShader->ID, "JOYSTICK_CONTROL"), i);
         glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
     }
@@ -285,16 +310,20 @@ glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& sha
     return model;
 }
 
-void getPerspectiveProjection(int width, int height, Shader &shader) {
+glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader) {
     float inv_aspect = (float) width / (float) height;
     glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    return projection;
 }
 
-void getOrthographicProjection(int width, int height, Shader *shader) {
+glm::mat4 getOrthographicProjection(int width, int height, Shader *shader) {
     float aspect_ratio = (float)width/(float)height;
     glm::mat4 projection = glm::ortho(-aspect_ratio, aspect_ratio, -1.0f, 1.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    return projection;
 }
 
 void Loader::LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index) {

@@ -14,14 +14,14 @@
 class Camera {
 
     public:
-        void setCamera(int width, int height, Shader &shader, void (*projPtr) (int width, int height, Shader &shader));
+        void setCamera(int width, int height, Shader &shader, glm::mat4 (*projPtr) (int width, int height, Shader &shader));
         void mouse(double xpos, double ypos);
         bool firstTouch = true;
+        glm::vec3 position = glm::vec3(0.0f);
 
     private:
         glm::vec3 orientation = glm::vec3(0.0f, 0.0f, 1.0f);
         glm::vec3 upDirection = glm::vec3(0.0f, 1.0f, 0.0f);
-        glm::vec3 position = glm::vec3(0.0f);
         float width, height;
         double yaw, pitch;
         float lastX, lastY;

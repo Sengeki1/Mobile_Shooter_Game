@@ -19,6 +19,7 @@
 #include "../Textures/Texture.h"
 #include "../FileIO/FileIO.h"
 #include "../Camera/Camera.h"
+#include "../Touch.h"
 
 #include "../Mesh/Square.h"
 
@@ -84,12 +85,14 @@ class Loader {
         // Square (JoySticks)
         std::vector<VAO*> VAOsSquare{4};
         std::vector<VBO*> VBOsSquare{4};
+        std::vector<VBO*> VBOsSquareNormals{4};
         std::vector<EBO*> EBOsSquare{4};
         Shader* ptrSquareShader;
+        std::vector<glm::vec3> square_normals;
 };
 
-void getPerspectiveProjection(int width, int height, Shader &shader);
-void getOrthographicProjection(int width, int height, Shader* shader);
+glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader);
+glm::mat4 getOrthographicProjection(int width, int height, Shader* shader);
 
 
 #endif //SHOOTERGAME_LOADER_H
