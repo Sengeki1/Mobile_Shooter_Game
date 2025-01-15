@@ -17,6 +17,7 @@ class Renderer {
         void do_frame(glm::vec2 motionXY, bool* touch);
 
         Loader* ptrLoader;
+        glm::vec2 motionXY = glm::vec2(-1, -1);
 
     private:
         EGLDisplay display; // Serves as connection for both Android Display and GLES

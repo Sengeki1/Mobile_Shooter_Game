@@ -1,11 +1,11 @@
 #include "Camera.h"
 
-void Camera::setCamera(int width, int height, Shader& shader, void (*projPtr) (int width, int height, Shader &shader)) {
+void Camera::setCamera(int width, int height, Shader& shader, glm::mat4 (*projPtr) (int width, int height, Shader &shader)) {
     this->width = (float) width;
     this->height = (float) height;
     glm::mat4 view = glm::lookAt(position, position + orientation, upDirection);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
-    projPtr(width, height, shader);
+    glm::mat4 projection = projPtr(width, height, shader);
 }
 
 void Camera::mouse(double xpos, double ypos) {

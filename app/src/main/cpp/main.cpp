@@ -72,7 +72,7 @@ void android_main(android_app *app) {
         } while (!done);
 
         bool touch = false;
-        glm::vec2 motionXY = getMotionXY(app, &touch);
+        glm::vec2 motionXY = getMotionXY(app, &touch, motionXY);
 
         if (!app->userData) continue; // if the userData returns null
 
