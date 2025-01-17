@@ -49,7 +49,7 @@ class Loader {
         void Mesh();
         void DeleteMeshes();
         void LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index);
-        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch);
+        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch, bool* button_touch);
 
     private:
         AAsset* asset;
@@ -89,6 +89,7 @@ class Loader {
         std::vector<EBO*> EBOsSquare{4};
         Shader* ptrSquareShader;
         std::vector<glm::vec3> square_normals;
+        std::map<int, std::vector<glm::vec3>> ndc_squares;
 };
 
 glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader);

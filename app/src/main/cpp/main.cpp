@@ -72,12 +72,13 @@ void android_main(android_app *app) {
         } while (!done);
 
         bool touch = false;
-        glm::vec2 motionXY = getMotionXY(app, &touch, motionXY);
+        static bool button_touch = false;
+        glm::vec2 motionXY = getMotionXY(app, &touch, &button_touch, motionXY);
 
         if (!app->userData) continue; // if the userData returns null
 
         Renderer* renderer = (Renderer*) app->userData;
-        renderer->do_frame(motionXY, &touch);
+        renderer->do_frame(motionXY, &touch, &button_touch);
 
         if (app->destroyRequested) renderer->ptrLoader->DeleteMeshes();
 

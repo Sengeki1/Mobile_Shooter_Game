@@ -161,7 +161,7 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool* touch) {
+void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch, bool* button_touch) {
     if ((*touch) && newTouch) {
         camera.firstTouch = true;
         newTouch = false;
@@ -177,7 +177,9 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
     glDepthFunc(GL_LEQUAL);
 
     ptrCubeMapShader->Activate();
-    camera.setCamera(width, height, (* ptrCubeMapShader), getPerspectiveProjection);
+    float inv_aspect = (float) width / (float) height;
+    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     VAOCubeMap->bind();
     glActiveTexture(GL_TEXTURE0);
@@ -205,9 +207,9 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
             if (k == 0 || k == 1) {
-                model = cityTransformations(model, angle, Shaders[indexMesh]);
+                model = cityTransformations(model, deltaTime, Shaders[indexMesh]);
             } else {
-                model = gunTransformations(model, angle, Shaders[indexMesh]);
+                model = gunTransformations(model, deltaTime, Shaders[indexMesh]);
             }
 
             // Materials
@@ -229,26 +231,49 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ptrSquareShader->Activate();
-    glm::mat4 projection = getOrthographicProjection(width, height, ptrSquareShader);
+    glm::mat4 orthographicProjection = getOrthographicProjection(width, height, ptrSquareShader);
 
-    // convert to ndc
-    glm::vec3 ray_direction = convertNDC(motionXY, width, height, projection);
-    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(ray_direction).c_str());
+    glm::vec3 mouse_ndc = convertNDC(motionXY, width, height);
 
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i]->bind();
 
-        // check intersection with squares
-        for (int j = 0; j < square_normals.size(); j++) {
-            float t = -(glm::dot(camera.position, square_normals[j])) / glm::dot(ray_direction, square_normals[j]);
+        if ((*button_touch)) {
+            glm::vec2 min, max;
 
-            //__android_log_print(ANDROID_LOG_INFO, "LOG", "%f", t);
-            if (t > 0) {
-                __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", t);
+            if (i == 0) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -8.0f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
+            } else if (i == 1) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -5.0f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
+            }  else if (i == 2) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -6.4f, -1.5f);
+                min = min_max[0];
+                max = min_max[1];
+            }  else if (i == 3) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -6.4f, 1.5f);
+                min = min_max[0];
+                max = min_max[1];
+            }
+
+            if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
+                mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
+
+                if (i == 0) {
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
+                } else if (i == 1) {
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
+                }  else if (i == 2) {
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
+                }  else if (i == 3) {
+                    camera.position += (camera.speed * (float) deltaTime) * camera.orientation;
+                }
+                __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(camera.position).c_str());
             }
         }
-
-        // move
 
         glUniform1i(glGetUniformLocation(ptrSquareShader->ID, "JOYSTICK_CONTROL"), i);
         glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
