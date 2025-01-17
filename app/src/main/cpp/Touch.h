@@ -9,7 +9,7 @@
 #include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <android/log.h>
 
- glm::vec2 getMotionXY(android_app *app, bool* touch, glm::vec2& motionXY);
+ glm::vec2 getMotionXY(android_app *app, bool* touch, bool* button_touch, glm::vec2& motionXY);
 
  glm::vec3 convertNDC(glm::vec2 motionXY, int width, int height);
 

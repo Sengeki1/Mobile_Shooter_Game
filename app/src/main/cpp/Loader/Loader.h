@@ -49,7 +49,7 @@ class Loader {
         void Mesh();
         void DeleteMeshes();
         void LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index);
-        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch);
+        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch, bool* button_touch);
 
     private:
         AAsset* asset;

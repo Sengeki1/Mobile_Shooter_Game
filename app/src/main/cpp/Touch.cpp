@@ -1,6 +1,6 @@
 #include "Touch.h"
 
-glm::vec2 getMotionXY(android_app *app, bool* touch, glm::vec2& motionXY) {
+glm::vec2 getMotionXY(android_app *app, bool* touch, bool* button_touch, glm::vec2& motionXY) {
     android_input_buffer* inputBuffer = android_app_swap_input_buffers(app);
 
     if (inputBuffer) {
@@ -13,13 +13,18 @@ glm::vec2 getMotionXY(android_app *app, bool* touch, glm::vec2& motionXY) {
 
             float x = GameActivityPointerAxes_getX(&motionEvent->pointers[ptrIndex]);
             float y = GameActivityPointerAxes_getY(&motionEvent->pointers[ptrIndex]);
+            (*button_touch) = true;
             motionXY = glm::vec2(x, y);
 
-            if (actionMasked == AMOTION_EVENT_ACTION_DOWN || actionMasked == AMOTION_EVENT_ACTION_MOVE || actionMasked == AMOTION_EVENT_ACTION_UP) {
+            if (actionMasked == AMOTION_EVENT_ACTION_DOWN || actionMasked == AMOTION_EVENT_ACTION_MOVE) {
                 (*touch) = true;
                 x = GameActivityPointerAxes_getX(&motionEvent->pointers[0]);
                 y = GameActivityPointerAxes_getY(&motionEvent->pointers[0]);
                 motionXY = glm::vec2(x, y);
+            }
+
+            if (actionMasked == AMOTION_EVENT_ACTION_UP) {
+                (*button_touch) = false;
             }
         }
 

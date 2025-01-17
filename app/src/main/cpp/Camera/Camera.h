@@ -18,15 +18,15 @@ class Camera {
         glm::mat4 getViewProjection();
         void mouse(double xpos, double ypos);
         bool firstTouch = true;
-        glm::vec3 position = glm::vec3(0.01f, 0.01f, 0.01f);
+        glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::vec3 upDirection = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::mat4 view_matrix;
-        float speed = 0.01f;
+        float speed = 0.0005f;
 
     private:
         float width, height;
-        double yaw, pitch;
+        float yaw = -90.0f, pitch = 0.0f;
         float lastX, lastY;
         float sensivity = 0.1f;
 };

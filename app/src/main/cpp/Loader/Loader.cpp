@@ -161,7 +161,7 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch) {
+void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch, bool* button_touch) {
     if ((*touch) && newTouch) {
         camera.firstTouch = true;
         newTouch = false;
@@ -177,7 +177,9 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
     glDepthFunc(GL_LEQUAL);
 
     ptrCubeMapShader->Activate();
-    camera.setCamera(width, height, (* ptrCubeMapShader), getPerspectiveProjection);
+    float inv_aspect = (float) width / (float) height;
+    glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
+    glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     VAOCubeMap->bind();
     glActiveTexture(GL_TEXTURE0);
@@ -195,7 +197,6 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
             Shaders[indexMesh].Activate();
             // Projection
             camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
-            __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(camera.position).c_str());
 
             if (k == 2 || k == 3) {
                 glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
@@ -237,7 +238,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i]->bind();
 
-        if ((*touch)) {
+        if ((*button_touch)) {
             glm::vec2 min, max;
 
             if (i == 0) {
@@ -265,7 +266,12 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
                 } else if (i == 1) {
                     camera.position += (camera.speed * (float) deltaTime) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
+                }  else if (i == 2) {
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
+                }  else if (i == 3) {
+                    camera.position += (camera.speed * (float) deltaTime) * camera.orientation;
                 }
+                __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(camera.position).c_str());
             }
         }
 
