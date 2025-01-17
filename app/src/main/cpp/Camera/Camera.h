@@ -15,9 +15,11 @@ class Camera {
 
     public:
         void setCamera(int width, int height, Shader &shader, glm::mat4 (*projPtr) (int width, int height, Shader &shader));
+        glm::mat4 getViewProjection();
         void mouse(double xpos, double ypos);
         bool firstTouch = true;
         glm::vec3 position = glm::vec3(0.0f);
+        glm::mat4 view_matrix;
 
     private:
         glm::vec3 orientation = glm::vec3(0.0f, 0.0f, 1.0f);

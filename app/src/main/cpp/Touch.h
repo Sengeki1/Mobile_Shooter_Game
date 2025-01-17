@@ -9,6 +9,6 @@
 
  glm::vec2 getMotionXY(android_app *app, bool* touch, glm::vec2& motionXY);
 
- glm::vec3 convertNDC(glm::vec2 motionXY, int width, int height, glm::mat4 projection);
+ glm::vec3 convertNDC(glm::vec2 motionXY, int width, int height);
 
 #endif //SHOOTERGAME_TOUCH_H

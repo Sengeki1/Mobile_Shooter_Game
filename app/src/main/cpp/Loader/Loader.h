@@ -89,6 +89,7 @@ class Loader {
         std::vector<EBO*> EBOsSquare{4};
         Shader* ptrSquareShader;
         std::vector<glm::vec3> square_normals;
+        std::map<int, std::vector<glm::vec3>> ndc_squares;
 };
 
 glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader);

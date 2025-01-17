@@ -29,19 +29,14 @@ glm::vec2 getMotionXY(android_app *app, bool* touch, glm::vec2& motionXY) {
     return motionXY;
 }
 
-glm::vec3 convertNDC(glm::vec2 motionXY, int width, int height, glm::mat4 projection) {
+glm::vec3 convertNDC(glm::vec2 motionXY, int width, int height) {
     // Convert screen coordinates to normalized device coordinates (-1 to 1 range)
-    float x = (2.0f * motionXY.x) / width - 1.0f;
-    float y = 1.0f - (2.0f * motionXY.y) / height;
+    float x = (2.0f * motionXY.x) / (float) width - 1.0f;
+    float y = 1.0f - (2.0f * motionXY.y) / (float) height;
+    float z = 1.0f;
 
     // Create ray in NDC space (pointing into the screen)
-    glm::vec3 ray_ndc = glm::vec3(x, y, -1.0f);
+    glm::vec3 ray_ndc = glm::vec3(x, y, z);
 
-    // Transform to world coordinates using inverse projection
-    glm::vec4 ray_world = glm::inverse(projection) * glm::vec4(ray_ndc, 1.0f);
-
-    // Convert to direction vector (w = 0 for directions)
-    glm::vec3 ray_direction = glm::normalize(glm::vec3(ray_world));
-
-    return ray_direction;
+    return ray_ndc;
 }

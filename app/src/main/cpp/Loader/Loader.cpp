@@ -229,23 +229,42 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ptrSquareShader->Activate();
-    glm::mat4 projection = getOrthographicProjection(width, height, ptrSquareShader);
+    glm::mat4 orthographicProjection = getOrthographicProjection(width, height, ptrSquareShader);
 
-    // convert to ndc
-    glm::vec3 ray_direction = convertNDC(motionXY, width, height, projection);
-    //__android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(ray_direction).c_str());
+    glm::vec3 mouse_ndc = convertNDC(motionXY, width, height);
+    __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(mouse_ndc).c_str());
 
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i]->bind();
 
-        // check intersection with squares
-        for (int j = 0; j < square_normals.size(); j++) {
-            float t = -(glm::dot(camera.position, square_normals[j])) / glm::dot(ray_direction, square_normals[j]);
+        std::vector<glm::vec3> transformed_right_square;
+        std::vector<glm::vec3> transformed_left_square;
+        std::vector<glm::vec3> transformed_bottom_square;
+        std::vector<glm::vec3> transformed_top_square;
+        for (int j = 0; j < square_vertices.size(); j++) {
+            transformed_right_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
+            transformed_left_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
+            transformed_bottom_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
+            transformed_top_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
+        }
 
-            //__android_log_print(ANDROID_LOG_INFO, "LOG", "%f", t);
-            if (t > 0) {
-                __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", t);
-            }
+        auto max_right = glm::vec2(transformed_right_square[0]);
+        auto min_right = glm::vec2(transformed_right_square[0]);
+        auto max_left = glm::vec2(transformed_left_square[0]);
+        auto min_left = glm::vec2(transformed_left_square[0]);
+        auto max_bottom = glm::vec2(transformed_bottom_square[0]);
+        auto min_bottom = glm::vec2(transformed_bottom_square[0]);
+        auto max_top = glm::vec2(transformed_top_square[0]);
+        auto min_top = glm::vec2(transformed_top_square[0]);
+
+        for (auto& vertex : transformed_vertices) {
+            max = glm::max(glm::vec2(vertex), max);
+            min = glm::min(glm::vec2(vertex), min);
+        }
+
+        if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
+            mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
+            __android_log_print(ANDROID_LOG_INFO, "LOG", "%d", i);
         }
 
         // move
