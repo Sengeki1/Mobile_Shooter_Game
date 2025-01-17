@@ -65,10 +65,10 @@ void Renderer::do_frame(glm::vec2 motionXY, bool* touch) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // deltaTime
-    static float angle = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
-    angle += 1.0f;
+    static float deltaTime = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
+    deltaTime += 1.0f;
 
-    ptrLoader->RenderMeshes(width, height, angle, motionXY, &(*touch));
+    ptrLoader->RenderMeshes(width, height, deltaTime, motionXY, &(*touch));
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);

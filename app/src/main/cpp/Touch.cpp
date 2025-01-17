@@ -40,3 +40,22 @@ glm::vec3 convertNDC(glm::vec2 motionXY, int width, int height) {
 
     return ray_ndc;
 }
+
+std::vector<glm::vec2> min_maxSquare(glm::mat4 &orthographicProjection, float offset_x, float offset_y) {
+    std::vector<glm::vec3> transformed_vertices;
+
+    for (int j = 0; j < square_vertices.size(); j++) {
+        transformed_vertices.emplace_back(orthographicProjection * glm::vec4((square_vertices[j].x + offset_x) * 0.25f,
+                                                                             (square_vertices[j].y + offset_y) * 0.25f, 0.0f, 1.0f));
+    }
+
+    auto max = glm::vec2(transformed_vertices[0]);
+    auto min = glm::vec2(transformed_vertices[0]);
+
+    for (auto& vertex : transformed_vertices) {
+        max = glm::max(glm::vec2(vertex), max);
+        min = glm::min(glm::vec2(vertex), min);
+    }
+
+    return { min, max };
+}

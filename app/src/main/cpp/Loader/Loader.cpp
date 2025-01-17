@@ -161,7 +161,7 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool* touch) {
+void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch) {
     if ((*touch) && newTouch) {
         camera.firstTouch = true;
         newTouch = false;
@@ -195,6 +195,7 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
             Shaders[indexMesh].Activate();
             // Projection
             camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
+            __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(camera.position).c_str());
 
             if (k == 2 || k == 3) {
                 glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
@@ -205,9 +206,9 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
             if (k == 0 || k == 1) {
-                model = cityTransformations(model, angle, Shaders[indexMesh]);
+                model = cityTransformations(model, deltaTime, Shaders[indexMesh]);
             } else {
-                model = gunTransformations(model, angle, Shaders[indexMesh]);
+                model = gunTransformations(model, deltaTime, Shaders[indexMesh]);
             }
 
             // Materials
@@ -232,42 +233,41 @@ void Loader::RenderMeshes(int width, int height, float angle, glm::vec2 motionXY
     glm::mat4 orthographicProjection = getOrthographicProjection(width, height, ptrSquareShader);
 
     glm::vec3 mouse_ndc = convertNDC(motionXY, width, height);
-    __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(mouse_ndc).c_str());
 
     for (int i = 0; i < 4; i++) {
         VAOsSquare[i]->bind();
 
-        std::vector<glm::vec3> transformed_right_square;
-        std::vector<glm::vec3> transformed_left_square;
-        std::vector<glm::vec3> transformed_bottom_square;
-        std::vector<glm::vec3> transformed_top_square;
-        for (int j = 0; j < square_vertices.size(); j++) {
-            transformed_right_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
-            transformed_left_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
-            transformed_bottom_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
-            transformed_top_square.emplace_back(orthographicProjection * glm::vec4(square_vertices[j].x, square_vertices[j].y, 0.0f, 1.0f));
+        if ((*touch)) {
+            glm::vec2 min, max;
+
+            if (i == 0) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -8.0f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
+            } else if (i == 1) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -5.0f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
+            }  else if (i == 2) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -6.4f, -1.5f);
+                min = min_max[0];
+                max = min_max[1];
+            }  else if (i == 3) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -6.4f, 1.5f);
+                min = min_max[0];
+                max = min_max[1];
+            }
+
+            if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
+                mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
+
+                if (i == 0) {
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
+                } else if (i == 1) {
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
+                }
+            }
         }
-
-        auto max_right = glm::vec2(transformed_right_square[0]);
-        auto min_right = glm::vec2(transformed_right_square[0]);
-        auto max_left = glm::vec2(transformed_left_square[0]);
-        auto min_left = glm::vec2(transformed_left_square[0]);
-        auto max_bottom = glm::vec2(transformed_bottom_square[0]);
-        auto min_bottom = glm::vec2(transformed_bottom_square[0]);
-        auto max_top = glm::vec2(transformed_top_square[0]);
-        auto min_top = glm::vec2(transformed_top_square[0]);
-
-        for (auto& vertex : transformed_vertices) {
-            max = glm::max(glm::vec2(vertex), max);
-            min = glm::min(glm::vec2(vertex), min);
-        }
-
-        if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
-            mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
-            __android_log_print(ANDROID_LOG_INFO, "LOG", "%d", i);
-        }
-
-        // move
 
         glUniform1i(glGetUniformLocation(ptrSquareShader->ID, "JOYSTICK_CONTROL"), i);
         glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);

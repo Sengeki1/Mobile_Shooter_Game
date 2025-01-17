@@ -3,6 +3,7 @@
 void Camera::setCamera(int width, int height, Shader& shader, glm::mat4 (*projPtr) (int width, int height, Shader &shader)) {
     this->width = (float) width;
     this->height = (float) height;
+
     view_matrix = glm::lookAt(position, position + orientation, upDirection);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view_matrix));
     glm::mat4 projection = projPtr(width, height, shader);
