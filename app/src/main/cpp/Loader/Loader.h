@@ -71,7 +71,7 @@ class Loader {
         Camera camera;
         bool newTouch = true;
 
-        glm::mat4 enemyTransformations(glm::mat4 &model, float angle);
+        glm::mat4 enemyTransformations(glm::mat4& model, float angle, Shader& shader, Camera& camera);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
 
