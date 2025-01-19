@@ -206,9 +206,11 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
             // transformations
             glm::mat4 model = glm::mat4(1.0f);
-            if (k == 0 || k == 1) {
+            if (k == 0) {
                 model = cityTransformations(model, deltaTime, Shaders[indexMesh]);
-            } else {
+            } else if (k == 1) {
+                model = enemyTransformations(model, deltaTime, Shaders[indexMesh], camera);
+            }else {
                 model = gunTransformations(model, deltaTime, Shaders[indexMesh]);
             }
 
@@ -269,9 +271,8 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                 }  else if (i == 2) {
                     camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
                 }  else if (i == 3) {
-                    camera.position += (camera.speed * (float) deltaTime) * camera.orientation;
+                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
                 }
-                __android_log_print(ANDROID_LOG_INFO, "LOG", "%s", glm::to_string(camera.position).c_str());
             }
         }
 
@@ -318,18 +319,22 @@ glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle, Shader& shad
     return model;
 }
 
-glm::mat4 Loader::enemyTransformations(glm::mat4& model, float angle) {
-    model = glm::translate(model, glm::vec3(0.0f, 0.5f, -3.0f));
+glm::mat4 Loader::enemyTransformations(glm::mat4& model, float angle, Shader& shader, Camera& camera) {
+
+    glm::vec3 position = (camera.position + glm::vec3(0.0f, 0.0f, -0.3f)) - camera.position;
+
+    model = glm::translate(model, position * angle);
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(angle * 0.1f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 1.0f);
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
 }
 
 glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& shader) {
-    model = glm::translate(model, glm::vec3(0.0f, -0.8f, -8.0f));
+    model = glm::translate(model, glm::vec3(0.0f, -1.8f, -8.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 10.0f);
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 50.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
