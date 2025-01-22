@@ -6,11 +6,15 @@ void Camera::setCamera(int width, int height, Shader& shader, glm::mat4 (*projPt
 
     view_matrix = glm::lookAt(position, position + orientation, upDirection);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view_matrix));
-    glm::mat4 projection = projPtr(width, height, shader);
+    projection_matrix = projPtr(width, height, shader);
 }
 
-glm::mat4 Camera::getViewProjection() {
+glm::mat4 Camera::getViewMatrix() {
     return view_matrix;
+}
+
+glm::mat4 Camera::getProjectionMatrix() {
+    return projection_matrix;
 }
 
 void Camera::mouse(double xpos, double ypos) {

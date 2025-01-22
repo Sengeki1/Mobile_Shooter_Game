@@ -56,6 +56,7 @@ class Loader {
         std::map<int, const char*> pFileNames;
         std::map<int, const char*>pMTLFileNames;
         std::list<const char *> shader;
+        std::list<const char *> enemyShader;
         struct Material structMaterial;
         const aiScene *scene;
         std::vector<int> totalMesh;
@@ -71,7 +72,7 @@ class Loader {
         Camera camera;
         bool newTouch = true;
 
-        glm::mat4 enemyTransformations(glm::mat4& model, float angle, Shader& shader, Camera& camera);
+        glm::mat4 enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera);
         glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
 

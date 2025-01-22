@@ -15,13 +15,15 @@ class Camera {
 
     public:
         void setCamera(int width, int height, Shader &shader, glm::mat4 (*projPtr) (int width, int height, Shader &shader));
-        glm::mat4 getViewProjection();
+        glm::mat4 getViewMatrix();
+        glm::mat4 getProjectionMatrix();
         void mouse(double xpos, double ypos);
         bool firstTouch = true;
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
         glm::vec3 upDirection = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::mat4 view_matrix;
+        glm::mat4 projection_matrix;
         float speed = 0.00005f;
 
     private:
