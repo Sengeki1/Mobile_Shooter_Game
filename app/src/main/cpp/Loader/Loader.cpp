@@ -14,6 +14,7 @@ Loader::Loader(AAssetManager* g_assetManager) {
     };
 
     shader = {"Shaders/model.vert", "Shaders/model.frag"};
+    enemyShader = {"Shaders/Enemy/model.vert", "Shaders/Enemy/model.frag"};
 
     // Load OBJ files
     for (int k = 0; k < pFileNames.size(); k++) {
@@ -57,7 +58,11 @@ Loader::Loader(AAssetManager* g_assetManager) {
                 // so i can iterate the CORRECT VBO and VAO for each Mesh
                 for (int i = 0; i < scene->mNumMeshes; i++) {
                     totalMesh[k]++; // this serves to count the total Mesh in a model
-                    Shaders.push_back(Shader(shader.front(), shader.back(), g_assetManager));
+                    if (k == 1) {
+                        Shaders.push_back(Shader(enemyShader.front(), enemyShader.back(), g_assetManager));
+                    } else {
+                        Shaders.push_back(Shader(shader.front(), shader.back(), g_assetManager));
+                    }
                     VAOs.push_back(VAO());
                     VBOs.push_back(VBO()); // for vertices
                     VBOs.push_back(VBO()); // for normals
@@ -265,13 +270,13 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                 mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
 
                 if (i == 0) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
+                    camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
                 } else if (i == 1) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
+                    camera.position += (camera.speed) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
                 }  else if (i == 2) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
+                    camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
                 }  else if (i == 3) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
+                    camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
                 }
             }
         }
@@ -319,13 +324,30 @@ glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle, Shader& shad
     return model;
 }
 
-glm::mat4 Loader::enemyTransformations(glm::mat4& model, float angle, Shader& shader, Camera& camera) {
+glm::mat4 Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera) {
 
-    glm::vec3 position = (camera.position + glm::vec3(0.0f, 0.0f, -0.3f)) - camera.position;
+    // Translate enemy to a position
+    glm::vec3 position = glm::vec3(0.0f, -1.5f, -5.0f);
+    model = glm::translate(model, position);
 
-    model = glm::translate(model, position * angle);
-    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 1.0f);
+    // move the enemy
+    //model = glm::translate(model, glm::vec3(((position.x + -camera.orientation.x) + 0.005f * deltaTime), 0.0f, (position.z + -camera.orientation.z) + 0.005f * deltaTime));
+
+    // extract direction and calculate rotation matrix
+    glm::vec3 direction = -glm::vec3(camera.orientation.x, 0.0f, camera.orientation.z);
+    glm::vec3 right = glm::normalize(glm::cross(glm::vec3(0.0f, -1.0f, 0.0f), direction));
+    glm::vec3 up = glm::normalize(glm::cross(right, direction));
+
+    glm::mat4 rotation_matrix = {
+            right.x,     right.y,     right.z,     0,  // First row (right vector)
+            up.x,        up.y,        up.z,        0,  // Second row (up vector)
+            direction.x , direction.y, direction.z,  0,  // Third row (direction vector)
+            0,           0,           0,           1   // Fourth row (translation component)
+    };
+
+    model *= rotation_matrix;
+
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 0.4f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
