@@ -24,7 +24,7 @@ class Camera {
         glm::vec3 upDirection = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::mat4 view_matrix;
         glm::mat4 projection_matrix;
-        float speed = 0.00005f;
+        float speed = 0.05f;
 
     private:
         float width, height;

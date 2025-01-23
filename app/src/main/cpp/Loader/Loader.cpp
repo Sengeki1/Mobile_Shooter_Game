@@ -270,13 +270,13 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                 mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
 
                 if (i == 0) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
+                    camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, camera.orientation));
                 } else if (i == 1) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
+                    camera.position += (camera.speed) * glm::normalize(-glm::cross(camera.upDirection, camera.orientation));
                 }  else if (i == 2) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
+                    camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
                 }  else if (i == 3) {
-                    camera.position += (camera.speed * (float) deltaTime) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
+                    camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
                 }
             }
         }
@@ -327,24 +327,27 @@ glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle, Shader& shad
 glm::mat4 Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera) {
 
     // Translate enemy to a position
-    glm::vec3 position = glm::vec3(0.0f, -1.3f, -5.0f);
+    glm::vec3 position = glm::vec3(0.0f, -1.5f, -5.0f);
     model = glm::translate(model, position);
 
-    // extract direction and calculate the angle for rotation of the orientation of the given enemy
-    glm::vec3 direction = glm::normalize(camera.position - position);
+    // move the enemy
+    //model = glm::translate(model, glm::vec3(((position.x + -camera.orientation.x) + 0.005f * deltaTime), 0.0f, (position.z + -camera.orientation.z) + 0.005f * deltaTime));
+
+    // extract direction and calculate rotation matrix
+    glm::vec3 direction = -glm::vec3(camera.orientation.x, 0.0f, camera.orientation.z);
     glm::vec3 right = glm::normalize(glm::cross(glm::vec3(0.0f, -1.0f, 0.0f), direction));
     glm::vec3 up = glm::normalize(glm::cross(right, direction));
 
     glm::mat4 rotation_matrix = {
             right.x,     right.y,     right.z,     0,  // First row (right vector)
             up.x,        up.y,        up.z,        0,  // Second row (up vector)
-            direction.x, direction.y, direction.z,  0,  // Third row (direction vector)
+            direction.x , direction.y, direction.z,  0,  // Third row (direction vector)
             0,           0,           0,           1   // Fourth row (translation component)
     };
 
     model *= rotation_matrix;
 
-    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 1.0f);
+    glUniform1f(glGetUniformLocation(shader.ID, "scale"), 0.4f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     return model;
