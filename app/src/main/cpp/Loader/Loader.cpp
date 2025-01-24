@@ -202,9 +202,13 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
         for (int i = 0; i < totalMesh[k]; i++) {
             if (k == 1) {
                 counter += 0.001f;
-                if (counter >= 1.0f) {
+                if (counter >= 1.0f && enemies_count < 10) {
                     enemies_count += 1;
                     counter = 0.0f;
+
+                    int random_pos_z = (rand() % 10) + 5;
+
+                    positions_enemies.push_back(glm::vec3(0.0f, -1.3f, -(float) random_pos_z + camera.orientation.z));
                 }
                 for (int j = 0; j < enemies_count; j++) {
                     Shaders[indexMesh].Activate();
@@ -217,7 +221,8 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     glm::mat4 model = glm::mat4(1.0f);
 
                     glUniform1i(glGetUniformLocation(Shaders[indexMesh].ID, "ID"), k);
-                    enemyTransformations(model, deltaTime, Shaders[indexMesh], camera, app);
+
+                    enemyTransformations(model, deltaTime, Shaders[indexMesh], camera, app, positions_enemies[j]);
 
                     // Materials
                     glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"),
@@ -232,6 +237,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     glDrawElements(GL_TRIANGLES, Meshes[k].indices.size(), GL_UNSIGNED_INT, 0);
                 }
                 indexMesh++;
+
             } else {
                 Shaders[indexMesh].Activate();
                 // Projection
@@ -361,10 +367,9 @@ void Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 }
 
-void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app) {
+void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position) {
 
     // Translate enemy to a position
-    glm::vec3 position = glm::vec3(0.0f, -1.5f, -5.0f);
     model = glm::translate(model, position);
 
     // extract direction and calculate rotation matrix

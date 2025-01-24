@@ -46,6 +46,7 @@ void android_main(android_app *app) {
 
     app->onAppCmd = on_app_cmd; // callBack required
     android_app_set_motion_event_filter(app, nullptr);
+    srand(time(NULL));
 
     do {
         // Handle Events

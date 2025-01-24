@@ -73,7 +73,7 @@ class Loader {
         Camera camera;
         bool newTouch = true;
 
-        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app);
+        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position);
         void gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         void cityTransformations(glm::mat4 &model, float angle, Shader& shader);
 
@@ -94,6 +94,7 @@ class Loader {
 
         // Ai
         int enemies_count = 1;
+        std::vector<glm::vec3> positions_enemies = { glm::vec3(0.0f, -1.3f, -5.0f) };
 };
 
 glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader);
