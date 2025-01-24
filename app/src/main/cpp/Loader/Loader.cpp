@@ -330,20 +330,21 @@ glm::mat4 Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader
     glm::vec3 position = glm::vec3(0.0f, -1.5f, -5.0f);
     model = glm::translate(model, position);
 
-    // move the enemy
-    //model = glm::translate(model, glm::vec3(((position.x + -camera.orientation.x) + 0.005f * deltaTime), 0.0f, (position.z + -camera.orientation.z) + 0.005f * deltaTime));
-
     // extract direction and calculate rotation matrix
     glm::vec3 direction = -glm::vec3(camera.orientation.x, 0.0f, camera.orientation.z);
     glm::vec3 right = glm::normalize(glm::cross(glm::vec3(0.0f, -1.0f, 0.0f), direction));
     glm::vec3 up = glm::normalize(glm::cross(right, direction));
 
     glm::mat4 rotation_matrix = {
-            right.x,     right.y,     right.z,     0,  // First row (right vector)
-            up.x,        up.y,        up.z,        0,  // Second row (up vector)
-            direction.x , direction.y, direction.z,  0,  // Third row (direction vector)
-            0,           0,           0,           1   // Fourth row (translation component)
+            right.x,     right.y,     right.z,       0,  // First row (right vector)
+            up.x,        up.y,        up.z,          0,  // Second row (up vector)
+            direction.x, direction.y, direction.z,   0,  // Third row (direction vector)
+            0,           0,           0,             1   // Fourth row (translation component)
     };
+
+    // move the enemy
+    model = glm::translate(model, -(glm::vec3(1.0f, 0.0f, 1.0f) +
+            glm::vec3(position.x - camera.position.x, 0.0f, position.z - camera.position.z)) * (deltaTime * 0.0005f));
 
     model *= rotation_matrix;
 
