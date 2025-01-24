@@ -14,7 +14,7 @@ class Renderer {
         Renderer(android_app *app, AAssetManager* g_assetManager);
         ~Renderer();
 
-        void do_frame(glm::vec2 motionXY, bool* touch, bool* button_touch);
+        void do_frame(glm::vec2 motionXY, bool* touch, bool* button_touch, android_app *app);
 
         Loader* ptrLoader;
         glm::vec2 motionXY = glm::vec2(-1, -1);

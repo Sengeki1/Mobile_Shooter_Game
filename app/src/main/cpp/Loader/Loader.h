@@ -5,6 +5,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <android/log.h>
+#include <game-activity/native_app_glue/android_native_app_glue.h>
 #include <vector>
 #include <map>
 #include <list>
@@ -49,7 +50,7 @@ class Loader {
         void Mesh();
         void DeleteMeshes();
         void LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index);
-        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch, bool* button_touch);
+        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch, bool* button_touch, android_app *app);
 
     private:
         AAsset* asset;
@@ -72,9 +73,9 @@ class Loader {
         Camera camera;
         bool newTouch = true;
 
-        glm::mat4 enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera);
-        glm::mat4 gunTransformations(glm::mat4 &model, float angle, Shader& shader);
-        glm::mat4 cityTransformations(glm::mat4 &model, float angle, Shader& shader);
+        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app);
+        void gunTransformations(glm::mat4 &model, float angle, Shader& shader);
+        void cityTransformations(glm::mat4 &model, float angle, Shader& shader);
 
         // Cube Map
         VAO* VAOCubeMap;
@@ -90,7 +91,9 @@ class Loader {
         std::vector<EBO*> EBOsSquare{4};
         Shader* ptrSquareShader;
         std::vector<glm::vec3> square_normals;
-        std::map<int, std::vector<glm::vec3>> ndc_squares;
+
+        // Ai
+        int enemies_count = 1;
 };
 
 glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader);

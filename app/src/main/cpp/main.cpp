@@ -78,7 +78,7 @@ void android_main(android_app *app) {
         if (!app->userData) continue; // if the userData returns null
 
         Renderer* renderer = (Renderer*) app->userData;
-        renderer->do_frame(motionXY, &touch, &button_touch);
+        renderer->do_frame(motionXY, &touch, &button_touch, app);
 
         if (app->destroyRequested) renderer->ptrLoader->DeleteMeshes();
 
