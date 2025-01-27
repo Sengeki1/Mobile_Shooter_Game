@@ -30,5 +30,9 @@ void main() {
         pos.y += 1.5;
     }
 
+    if (JOYSTICK_CONTROL == 4) { // FIRE CONTROL
+        pos.x += 6.4;
+    }
+
     gl_Position = projection * vec4(pos * 0.25, 0.0, 1.0);
 }

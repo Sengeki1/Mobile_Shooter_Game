@@ -136,7 +136,7 @@ Loader::Loader(AAssetManager* g_assetManager) {
     skybox = new Texture(g_assetManager, VAOCubeMap, VBOCubeMap, EBOCubeMap);
 
     square_normals = squareNormals();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         VAOsSquare[i] = new VAO();
         VBOsSquare[i] = new VBO();
         VBOsSquareNormals[i] = new VBO();
@@ -186,6 +186,9 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
     glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+    glm::mat4 view_matrix = glm::mat4(glm::mat3(camera.getViewMatrix()));
+    glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view_matrix));
+
     VAOCubeMap->bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->cubeMapTexture);
@@ -206,7 +209,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     enemies_count += 1;
                     counter = 0.0f;
 
-                    int random_pos_z = (rand() % 10) + 5;
+                    int random_pos_z = (rand() % 20) + 10;
 
                     positions_enemies.push_back(glm::vec3(0.0f, -1.3f, -(float) random_pos_z + camera.orientation.z));
                 }
@@ -287,7 +290,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
     glm::vec3 mouse_ndc = convertNDC(motionXY, width, height);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         VAOsSquare[i]->bind();
 
         if ((*button_touch)) {
@@ -309,6 +312,10 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                 std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -6.4f, 1.5f);
                 min = min_max[0];
                 max = min_max[1];
+            } else if (i == 4) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, 6.4f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
             }
 
             if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
@@ -322,6 +329,8 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
                 }  else if (i == 3) {
                     camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
+                } else if (i == 4) {
+                    // check angle between camera.orientation and zombie.orientation and if > 0 kill
                 }
             }
         }
@@ -358,6 +367,14 @@ void Loader::DeleteMeshes() {
             indexMesh++;
         }
     }
+
+    for (int i = 0; i < 5; i++) {
+        delete VAOsSquare[i];
+        delete VBOsSquare[i];
+        delete VBOsSquareNormals[i];
+        delete EBOsSquare[i];
+    }
+
 }
 
 void Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
