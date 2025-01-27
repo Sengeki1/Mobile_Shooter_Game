@@ -225,7 +225,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
                     glUniform1i(glGetUniformLocation(Shaders[indexMesh].ID, "ID"), k);
 
-                    enemyTransformations(model, deltaTime, Shaders[indexMesh], camera, app, positions_enemies[j]);
+                    enemyTransformations(model, deltaTime, Shaders[indexMesh], camera, app, &positions_enemies[j]);
 
                     // Materials
                     glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"),
@@ -330,7 +330,20 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                 }  else if (i == 3) {
                     camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
                 } else if (i == 4) {
-                    // check angle between camera.orientation and zombie.orientation and if > 0 kill
+                    for (int j = 0; j < enemies_count; j++) {
+                        glm::vec3 new_pos = -(glm::vec3(1.0f, 0.0f, 1.0f) +
+                                              glm::vec3(positions_enemies[j].x - camera.position.x, 0.0f,
+                                                        positions_enemies[j].z - camera.position.z)) *
+                                            (deltaTime * 0.0005f);
+
+                        glm::vec3 current_pos = positions_enemies[j] + new_pos;
+                        glm::vec3 enemy_orientation = glm::normalize(glm::vec3(current_pos - camera.position));
+
+                        if ( glm::dot(camera.orientation, enemy_orientation) > 0.95 ) {
+                            enemies_count -= 1;
+                            positions_enemies.erase(positions_enemies.begin() + j);
+                        }
+                    }
                 }
             }
         }
@@ -384,10 +397,10 @@ void Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 }
 
-void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position) {
+void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3* position) {
 
     // Translate enemy to a position
-    model = glm::translate(model, position);
+    model = glm::translate(model, (*position));
 
     // extract direction and calculate rotation matrix
     glm::vec3 direction = -glm::vec3(camera.orientation.x, 0.0f, camera.orientation.z);
@@ -403,10 +416,10 @@ void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& sha
 
     // move the enemy
     glm::vec3 new_pos = -(glm::vec3(1.0f, 0.0f, 1.0f) +
-                          glm::vec3(position.x - camera.position.x, 0.0f, position.z - camera.position.z)) * (deltaTime * 0.0005f);
+                          glm::vec3((*position).x - camera.position.x, 0.0f, (*position).z - camera.position.z)) * (deltaTime * 0.0005f);
     model = glm::translate(model, new_pos);
 
-    glm::vec3 current_pos = position + new_pos;
+    glm::vec3 current_pos = (*position) + new_pos;
     if (glm::length(current_pos - camera.position) < 2.9f) {
         //app->destroyRequested = 1;
         //GameActivity_finish(app->activity);

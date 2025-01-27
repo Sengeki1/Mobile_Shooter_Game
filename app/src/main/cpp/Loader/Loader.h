@@ -73,7 +73,7 @@ class Loader {
         Camera camera;
         bool newTouch = true;
 
-        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position);
+        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 *position);
         void gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         void cityTransformations(glm::mat4 &model, float angle, Shader& shader);
 
