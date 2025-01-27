@@ -46,6 +46,7 @@ void android_main(android_app *app) {
 
     app->onAppCmd = on_app_cmd; // callBack required
     android_app_set_motion_event_filter(app, nullptr);
+    srand(time(NULL));
 
     do {
         // Handle Events
@@ -78,7 +79,7 @@ void android_main(android_app *app) {
         if (!app->userData) continue; // if the userData returns null
 
         Renderer* renderer = (Renderer*) app->userData;
-        renderer->do_frame(motionXY, &touch, &button_touch);
+        renderer->do_frame(motionXY, &touch, &button_touch, app);
 
         if (app->destroyRequested) renderer->ptrLoader->DeleteMeshes();
 

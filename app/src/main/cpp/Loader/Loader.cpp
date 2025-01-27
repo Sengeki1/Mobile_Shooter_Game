@@ -166,7 +166,7 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch, bool* button_touch) {
+void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch, bool* button_touch, android_app *app) {
     if ((*touch) && newTouch) {
         camera.firstTouch = true;
         newTouch = false;
@@ -177,8 +177,8 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
         camera.mouse(motionXY.x, motionXY.y);
     }
 
-//    // CubeMap
-//    // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
+    // CubeMap
+    // Since the cubemap will always have a depth of 1.0, we need that equal sign so it doesn't get discarded
     glDepthFunc(GL_LEQUAL);
 
     ptrCubeMapShader->Activate();
@@ -197,38 +197,83 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
     // Meshes OBJ
     int indexMesh = 0;
+    static float counter = 0.0f;
     for (int k = 0; k < Meshes.size(); k++) {
         for (int i = 0; i < totalMesh[k]; i++) {
-            Shaders[indexMesh].Activate();
-            // Projection
-            camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
+            if (k == 1) {
+                counter += 0.001f;
+                if (counter >= 1.0f && enemies_count < 10) {
+                    enemies_count += 1;
+                    counter = 0.0f;
 
-            if (k == 2 || k == 3) {
-                glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+                    int random_pos_z = (rand() % 10) + 5;
+
+                    positions_enemies.push_back(glm::vec3(0.0f, -1.3f, -(float) random_pos_z + camera.orientation.z));
+                }
+                for (int j = 0; j < enemies_count; j++) {
+                    Shaders[indexMesh].Activate();
+                    // Projection
+                    camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
+
+                    VAOs[indexMesh].bind();
+
+                    // transformations
+                    glm::mat4 model = glm::mat4(1.0f);
+
+                    glUniform1i(glGetUniformLocation(Shaders[indexMesh].ID, "ID"), k);
+
+                    enemyTransformations(model, deltaTime, Shaders[indexMesh], camera, app, positions_enemies[j]);
+
+                    // Materials
+                    glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"),
+                                materials[indexMesh].diffuse.x,
+                                materials[indexMesh].diffuse.y, materials[indexMesh].diffuse.z);
+                    glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "specular"),
+                                materials[indexMesh].specular.x,
+                                materials[indexMesh].specular.y, materials[indexMesh].specular.z);
+                    glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "shininess"),
+                                materials[indexMesh].shininess);
+
+                    glDrawElements(GL_TRIANGLES, Meshes[k].indices.size(), GL_UNSIGNED_INT, 0);
+                }
+                indexMesh++;
+
+            } else {
+                Shaders[indexMesh].Activate();
+                // Projection
+                camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
+
+                if (k == 2 || k == 3) {
+                    glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1,
+                                       GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+                }
+
+                VAOs[indexMesh].bind();
+
+                // transformations
+                glm::mat4 model = glm::mat4(1.0f);
+
+                glUniform1i(glGetUniformLocation(Shaders[indexMesh].ID, "ID"), k);
+                if (k == 0) {
+                    cityTransformations(model, deltaTime, Shaders[indexMesh]);
+                } else {
+                    gunTransformations(model, deltaTime, Shaders[indexMesh]);
+                }
+
+                // Materials
+                glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"),
+                            materials[indexMesh].diffuse.x,
+                            materials[indexMesh].diffuse.y, materials[indexMesh].diffuse.z);
+                glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "specular"),
+                            materials[indexMesh].specular.x,
+                            materials[indexMesh].specular.y, materials[indexMesh].specular.z);
+                glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "shininess"),
+                            materials[indexMesh].shininess);
+
+                glDrawElements(GL_TRIANGLES, Meshes[k].indices.size(), GL_UNSIGNED_INT, 0);
+
+                indexMesh++;
             }
-
-            VAOs[indexMesh].bind();
-
-            // transformations
-            glm::mat4 model = glm::mat4(1.0f);
-            if (k == 0) {
-                model = cityTransformations(model, deltaTime, Shaders[indexMesh]);
-            } else if (k == 1) {
-                model = enemyTransformations(model, deltaTime, Shaders[indexMesh], camera);
-            }else {
-                model = gunTransformations(model, deltaTime, Shaders[indexMesh]);
-            }
-
-            // Materials
-            glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"), materials[indexMesh].diffuse.x,
-                        materials[indexMesh].diffuse.y, materials[indexMesh].diffuse.z);
-            glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "specular"), materials[indexMesh].specular.x,
-                        materials[indexMesh].specular.y, materials[indexMesh].specular.z);
-            glUniform1f(glGetUniformLocation(Shaders[indexMesh].ID, "shininess"), materials[indexMesh].shininess);
-
-            glDrawElements(GL_TRIANGLES, Meshes[k].indices.size(), GL_UNSIGNED_INT, 0);
-
-            indexMesh++;
         }
     }
 
@@ -315,23 +360,17 @@ void Loader::DeleteMeshes() {
     }
 }
 
-glm::mat4 Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
+void Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
     model = glm::translate(model, glm::vec3(0.0f, -0.9f, -2.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glUniform1f(glGetUniformLocation(shader.ID, "scale"), 0.5f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
-    return model;
 }
 
-glm::mat4 Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera) {
+void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position) {
 
     // Translate enemy to a position
-    glm::vec3 position = glm::vec3(0.0f, -1.5f, -5.0f);
     model = glm::translate(model, position);
-
-    // move the enemy
-    //model = glm::translate(model, glm::vec3(((position.x + -camera.orientation.x) + 0.005f * deltaTime), 0.0f, (position.z + -camera.orientation.z) + 0.005f * deltaTime));
 
     // extract direction and calculate rotation matrix
     glm::vec3 direction = -glm::vec3(camera.orientation.x, 0.0f, camera.orientation.z);
@@ -339,27 +378,34 @@ glm::mat4 Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader
     glm::vec3 up = glm::normalize(glm::cross(right, direction));
 
     glm::mat4 rotation_matrix = {
-            right.x,     right.y,     right.z,     0,  // First row (right vector)
-            up.x,        up.y,        up.z,        0,  // Second row (up vector)
-            direction.x , direction.y, direction.z,  0,  // Third row (direction vector)
-            0,           0,           0,           1   // Fourth row (translation component)
+            right.x,     right.y,     right.z,       0,  // First row (right vector)
+            up.x,        up.y,        up.z,          0,  // Second row (up vector)
+            direction.x, direction.y, direction.z,   0,  // Third row (direction vector)
+            0,           0,           0,             1   // Fourth row (translation component)
     };
+
+    // move the enemy
+    glm::vec3 new_pos = -(glm::vec3(1.0f, 0.0f, 1.0f) +
+                          glm::vec3(position.x - camera.position.x, 0.0f, position.z - camera.position.z)) * (deltaTime * 0.0005f);
+    model = glm::translate(model, new_pos);
+
+    glm::vec3 current_pos = position + new_pos;
+    if (glm::length(current_pos - camera.position) < 2.9f) {
+        //app->destroyRequested = 1;
+        //GameActivity_finish(app->activity);
+    }
 
     model *= rotation_matrix;
 
     glUniform1f(glGetUniformLocation(shader.ID, "scale"), 0.4f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
-    return model;
 }
 
-glm::mat4 Loader::cityTransformations(glm::mat4& model, float angle, Shader& shader) {
+void Loader::cityTransformations(glm::mat4& model, float angle, Shader& shader) {
     model = glm::translate(model, glm::vec3(0.0f, -1.8f, -8.0f));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glUniform1f(glGetUniformLocation(shader.ID, "scale"), 50.0f);
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
-    return model;
 }
 
 glm::mat4 getPerspectiveProjection(int width, int height, Shader &shader) {
