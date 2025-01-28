@@ -68,7 +68,7 @@ void Renderer::do_frame(glm::vec2 motionXY, bool* touch, bool* button_touch, and
     static float deltaTime = 0.0f; // space for the static variable is allocated only once and the value of the variable in the previous call gets carried through the next function call.
     deltaTime += 1.0f;
 
-    ptrLoader->RenderMeshes(width, height, deltaTime, motionXY, &(*touch), &(*button_touch), app);
+    ptrLoader->RenderMeshes(width, height, &deltaTime, motionXY, &(*touch), &(*button_touch), app);
 
     auto res = eglSwapBuffers(display, surface);
     assert(res);

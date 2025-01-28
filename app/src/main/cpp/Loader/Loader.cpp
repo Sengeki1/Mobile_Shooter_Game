@@ -136,7 +136,7 @@ Loader::Loader(AAssetManager* g_assetManager) {
     skybox = new Texture(g_assetManager, VAOCubeMap, VBOCubeMap, EBOCubeMap);
 
     square_normals = squareNormals();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         VAOsSquare[i] = new VAO();
         VBOsSquare[i] = new VBO();
         VBOsSquareNormals[i] = new VBO();
@@ -166,7 +166,7 @@ Loader::~Loader() {
     asset = nullptr;
 }
 
-void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 motionXY, bool* touch, bool* button_touch, android_app *app) {
+void Loader::RenderMeshes(int width, int height, float* deltaTime, glm::vec2 motionXY, bool* touch, bool* button_touch, android_app *app) {
     if ((*touch) && newTouch) {
         camera.firstTouch = true;
         newTouch = false;
@@ -185,6 +185,9 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
     float inv_aspect = (float) width / (float) height;
     glm::mat4 projection = glm::perspective(45.0f, inv_aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    glm::mat4 view_matrix = glm::mat4(glm::mat3(camera.getViewMatrix()));
+    glUniformMatrix4fv(glGetUniformLocation(ptrCubeMapShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view_matrix));
 
     VAOCubeMap->bind();
     glActiveTexture(GL_TEXTURE0);
@@ -206,9 +209,10 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     enemies_count += 1;
                     counter = 0.0f;
 
-                    int random_pos_z = (rand() % 10) + 5;
+                    int random_pos_x = (rand() % 20) + 10;
+                    int random_pos_z = (rand() % 20) + 10;
 
-                    positions_enemies.push_back(glm::vec3(0.0f, -1.3f, -(float) random_pos_z + camera.orientation.z));
+                    positions_enemies.push_back(glm::vec3(-(float) random_pos_x + camera.orientation.x, -1.3f, -(float) random_pos_z + camera.orientation.z));
                 }
                 for (int j = 0; j < enemies_count; j++) {
                     Shaders[indexMesh].Activate();
@@ -222,7 +226,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
                     glUniform1i(glGetUniformLocation(Shaders[indexMesh].ID, "ID"), k);
 
-                    enemyTransformations(model, deltaTime, Shaders[indexMesh], camera, app, positions_enemies[j]);
+                    enemyTransformations(model, (*deltaTime), Shaders[indexMesh], camera, app, &positions_enemies[j]);
 
                     // Materials
                     glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "diffuse"),
@@ -255,9 +259,9 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
                 glUniform1i(glGetUniformLocation(Shaders[indexMesh].ID, "ID"), k);
                 if (k == 0) {
-                    cityTransformations(model, deltaTime, Shaders[indexMesh]);
+                    cityTransformations(model, (*deltaTime), Shaders[indexMesh]);
                 } else {
-                    gunTransformations(model, deltaTime, Shaders[indexMesh]);
+                    gunTransformations(model, (*deltaTime), Shaders[indexMesh]);
                 }
 
                 // Materials
@@ -287,7 +291,7 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
 
     glm::vec3 mouse_ndc = convertNDC(motionXY, width, height);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 5; i++) {
         VAOsSquare[i]->bind();
 
         if ((*button_touch)) {
@@ -309,6 +313,10 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                 std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, -6.4f, 1.5f);
                 min = min_max[0];
                 max = min_max[1];
+            } else if (i == 4) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, 6.4f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
             }
 
             if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
@@ -322,6 +330,59 @@ void Loader::RenderMeshes(int width, int height, float deltaTime, glm::vec2 moti
                     camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(glm::cross(camera.upDirection, camera.orientation))));
                 }  else if (i == 3) {
                     camera.position += (camera.speed) * glm::normalize(glm::cross(camera.upDirection, glm::normalize(-glm::cross(camera.upDirection, camera.orientation))));
+                }
+            }
+        }
+
+        if ((*touch)) {
+            glm::vec2 min, max;
+            if (i == 4) {
+                std::vector<glm::vec2> min_max = min_maxSquare(orthographicProjection, 6.4f, 0.0f);
+                min = min_max[0];
+                max = min_max[1];
+
+                if (mouse_ndc.x >= min.x && mouse_ndc.x <= max.x &&
+                    mouse_ndc.y >= min.y && mouse_ndc.y <= max.y) {
+                    for (int j = enemies_count - 1; j >= 0; j--) {
+                        glm::vec3 new_pos = -(glm::vec3(1.0f, 0.0f, 1.0f) +
+                                              glm::vec3(positions_enemies[j].x -
+                                                        camera.position.x, 0.0f,
+                                                        positions_enemies[j].z -
+                                                        camera.position.z)) *
+                                            ((*deltaTime) * 0.0005f);
+
+                        glm::vec3 current_pos = positions_enemies[j] + new_pos;
+                        glm::vec3 camera_to_enemy = current_pos - camera.position;
+                        glm::vec3 enemy_orientation = glm::normalize(camera_to_enemy);
+                        float distance = glm::length(camera_to_enemy);
+
+                        float threshold = 0.95f;
+
+                        __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", distance);
+                        if (distance < 5.0f) {
+                            threshold = glm::mix(0.85f, 0.95f, distance / 5.0f);
+                        }
+
+                        __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", glm::dot(camera.orientation, enemy_orientation));
+                        if (glm::dot(camera.orientation, enemy_orientation) > threshold) {
+                            enemies_count--;
+                            int k = 0;
+                            for (glm::vec3 position : positions_enemies) {
+                                k++;
+                                __android_log_print(ANDROID_LOG_INFO, "LOG", "[%i] %s",
+                                                    k, glm::to_string(position).c_str());
+                            }
+                            positions_enemies.erase(positions_enemies.begin() + j);
+                            k = 0;
+                            for (glm::vec3 position : positions_enemies) {
+                                k++;
+                                __android_log_print(ANDROID_LOG_INFO, "LOG", "[%i] %s",
+                                                    k, glm::to_string(position).c_str());
+                            }
+                            (*deltaTime) *= 0.05f;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -358,6 +419,14 @@ void Loader::DeleteMeshes() {
             indexMesh++;
         }
     }
+
+    for (int i = 0; i < 5; i++) {
+        delete VAOsSquare[i];
+        delete VBOsSquare[i];
+        delete VBOsSquareNormals[i];
+        delete EBOsSquare[i];
+    }
+
 }
 
 void Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
@@ -367,10 +436,10 @@ void Loader::gunTransformations(glm::mat4& model, float angle, Shader& shader) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
 }
 
-void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position) {
+void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3* position) {
 
     // Translate enemy to a position
-    model = glm::translate(model, position);
+    model = glm::translate(model, (*position));
 
     // extract direction and calculate rotation matrix
     glm::vec3 direction = -glm::vec3(camera.orientation.x, 0.0f, camera.orientation.z);
@@ -386,10 +455,10 @@ void Loader::enemyTransformations(glm::mat4& model, float deltaTime, Shader& sha
 
     // move the enemy
     glm::vec3 new_pos = -(glm::vec3(1.0f, 0.0f, 1.0f) +
-                          glm::vec3(position.x - camera.position.x, 0.0f, position.z - camera.position.z)) * (deltaTime * 0.0005f);
+                          glm::vec3((*position).x - camera.position.x, 0.0f, (*position).z - camera.position.z)) * (deltaTime * 0.0005f);
     model = glm::translate(model, new_pos);
 
-    glm::vec3 current_pos = position + new_pos;
+    glm::vec3 current_pos = (*position) + new_pos;
     if (glm::length(current_pos - camera.position) < 2.9f) {
         //app->destroyRequested = 1;
         //GameActivity_finish(app->activity);

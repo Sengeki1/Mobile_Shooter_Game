@@ -50,7 +50,7 @@ class Loader {
         void Mesh();
         void DeleteMeshes();
         void LoadMTL(AAssetManager* g_assetManager, const char* mtlFile, int index);
-        void RenderMeshes(int width, int height, float angle, glm::vec2 motionXY, bool *touch, bool* button_touch, android_app *app);
+        void RenderMeshes(int width, int height, float* deltaTime, glm::vec2 motionXY, bool *touch, bool* button_touch, android_app *app);
 
     private:
         AAsset* asset;
@@ -73,7 +73,7 @@ class Loader {
         Camera camera;
         bool newTouch = true;
 
-        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 position);
+        void enemyTransformations(glm::mat4& model, float deltaTime, Shader& shader, Camera& camera, android_app *app, glm::vec3 *position);
         void gunTransformations(glm::mat4 &model, float angle, Shader& shader);
         void cityTransformations(glm::mat4 &model, float angle, Shader& shader);
 
@@ -85,10 +85,10 @@ class Loader {
         Texture *skybox;
 
         // Square (JoySticks)
-        std::vector<VAO*> VAOsSquare{4};
-        std::vector<VBO*> VBOsSquare{4};
-        std::vector<VBO*> VBOsSquareNormals{4};
-        std::vector<EBO*> EBOsSquare{4};
+        std::vector<VAO*> VAOsSquare{5};
+        std::vector<VBO*> VBOsSquare{5};
+        std::vector<VBO*> VBOsSquareNormals{5};
+        std::vector<EBO*> EBOsSquare{5};
         Shader* ptrSquareShader;
         std::vector<glm::vec3> square_normals;
 
