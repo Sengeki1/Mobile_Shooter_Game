@@ -10,11 +10,11 @@ in vec3 FragPos;    // From vertex shader
 uniform vec3 diffuse;
 uniform vec3 specular;
 uniform float shininess;
+uniform vec3 cameraPos;
 
 void main() {
     float specularStrength = 0.1;
     vec3 lightPos = vec3(0.0, 0.9, -9.0);
-    vec3 cameraPos = vec3(0.0);
     vec3 lightDir = normalize(lightPos - FragPos);
 
     // diffuse
