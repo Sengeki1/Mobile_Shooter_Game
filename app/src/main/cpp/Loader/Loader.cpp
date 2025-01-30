@@ -218,6 +218,7 @@ void Loader::RenderMeshes(int width, int height, float* deltaTime, glm::vec2 mot
                     Shaders[indexMesh].Activate();
                     // Projection
                     camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
+                    glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
 
                     VAOs[indexMesh].bind();
 
@@ -246,6 +247,7 @@ void Loader::RenderMeshes(int width, int height, float* deltaTime, glm::vec2 mot
                 Shaders[indexMesh].Activate();
                 // Projection
                 camera.setCamera(width, height, Shaders[indexMesh], getPerspectiveProjection);
+                glUniform3f(glGetUniformLocation(Shaders[indexMesh].ID, "cameraPos"), camera.position.x, camera.position.y, camera.position.z);
 
                 if (k == 2 || k == 3) {
                     glUniformMatrix4fv(glGetUniformLocation(Shaders[indexMesh].ID, "view"), 1,
@@ -358,27 +360,13 @@ void Loader::RenderMeshes(int width, int height, float* deltaTime, glm::vec2 mot
 
                         float threshold = 0.95f;
 
-                        __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", distance);
                         if (distance < 5.0f) {
                             threshold = glm::mix(0.85f, 0.95f, distance / 5.0f);
                         }
 
-                        __android_log_print(ANDROID_LOG_INFO, "LOG", "%f", glm::dot(camera.orientation, enemy_orientation));
                         if (glm::dot(camera.orientation, enemy_orientation) > threshold) {
                             enemies_count--;
-                            int k = 0;
-                            for (glm::vec3 position : positions_enemies) {
-                                k++;
-                                __android_log_print(ANDROID_LOG_INFO, "LOG", "[%i] %s",
-                                                    k, glm::to_string(position).c_str());
-                            }
                             positions_enemies.erase(positions_enemies.begin() + j);
-                            k = 0;
-                            for (glm::vec3 position : positions_enemies) {
-                                k++;
-                                __android_log_print(ANDROID_LOG_INFO, "LOG", "[%i] %s",
-                                                    k, glm::to_string(position).c_str());
-                            }
                             (*deltaTime) *= 0.05f;
                             break;
                         }

@@ -9,7 +9,7 @@ Renderer::Renderer(android_app *app, AAssetManager* g_assetManager) { // Constru
     auto res = eglInitialize(display, nullptr, nullptr); // auto serves as an autocomplete to guess the type of the result
     assert(res == EGL_TRUE);
 
-    { // Define a scope
+    { // Define a local scope
         EGLint attribs[] = {
                 EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
                 EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
