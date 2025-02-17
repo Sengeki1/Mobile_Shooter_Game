@@ -9,7 +9,7 @@
 ## Overview
 This is a first-person shooter game developed in **Android Studio** using **Android Game Development Kit (AGDK)**. The project utilizes several key libraries, including:
 
-- **GLFW/EGL** – for window and input management
+- **GLAD/EGL** – for window and OpenGL API calls
 - **glm** – for mathematical computations
 - **Assimp** – for importing 3D models
 
